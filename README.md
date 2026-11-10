@@ -1,0 +1,2 @@
+# ethka---namatheg
+نماذج إذكاء
