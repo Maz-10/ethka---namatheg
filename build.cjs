@@ -5,6 +5,7 @@ const path = require('path')
 const { chromium } = require('playwright')
 
 const OUT = path.join(__dirname, 'dist')
+fs.mkdirSync(OUT, { recursive: true })
 const FONTS = path.join(__dirname, 'assets/fonts') + '/'
 const TH = FONTS
 const LOGO = fs.readFileSync(path.join(__dirname, 'assets/logo-paths.tsx'), 'utf8')
@@ -99,6 +100,8 @@ const AR = (s) => String(s).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[d])
 
 const STAGE = 'data:image/png;base64,' + fs.readFileSync(path.join(__dirname, 'assets/venue-logo.png')).toString('base64')
 const NAME = process.env.NAME || ''
+// اسمُ الملف: النموذجُ «دعوة - مجتمع إذكاء»، والبطاقةُ الشخصيّة «اسم المدعوّ - مجتمع إذكاء»
+const FILE = (NAME || 'دعوة') + ' - مجتمع إذكاء.pdf'
 const TOKEN = process.env.TOKEN || ''
 // النموذجُ بلا اسم: يُوجَّه ردُّه إلى نافذة التسجيل في صفحة اللقاء؛ والبطاقةُ الشخصيّة إلى مفتاح صاحبها
 const RSVP_YES = TOKEN ? 'https://ethka.sa/rsvp/' + TOKEN + '?a=yes' : 'https://ethka.sa/community/liqa-1/#التسجيل'
@@ -202,8 +205,7 @@ fs.writeFileSync(path.join(OUT, 'card.html'), html)
   await p.goto('file://' + path.join(OUT, 'card.html'))
   await p.evaluate(() => document.fonts.ready)
   await p.waitForTimeout(300)
-  await p.pdf({ path: path.join(OUT, (process.env.OUTNAME || 'card') + '.pdf'), width: '148mm', height: '210mm', printBackground: true, preferCSSPageSize: true })
-  await p.screenshot({ path: path.join(OUT, (process.env.OUTNAME || 'card') + '.png'), clip: { x: 0, y: 0, width: 559.37, height: 793.7 } })
+  await p.pdf({ path: path.join(OUT, FILE), width: '148mm', height: '210mm', printBackground: true, preferCSSPageSize: true })
   await b.close()
   console.log('seats', seats.length, 'lit', lit && f(lit.th))
 })()
