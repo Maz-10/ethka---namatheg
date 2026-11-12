@@ -1,0 +1,20 @@
+{
+  "name": "ethka-presentation-kit",
+  "private": true,
+  "version": "1.0.0",
+  "description": "هيئة عروض إذكاء — القالب الأصليّ لكل عرضٍ تقديميّ: محتوى يُركَّب على نموذجٍ ثابت",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "node src/build.mjs content/specimen.json --out template --template",
+    "deck": "node src/build.mjs",
+    "check": "node src/check.mjs",
+    "plate": "node src/plate.mjs"
+  },
+  "dependencies": {
+    "jszip": "3.10.1",
+    "pptxgenjs": "4.0.1"
+  }
+}

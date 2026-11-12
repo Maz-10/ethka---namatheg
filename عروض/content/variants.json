@@ -1,0 +1,21 @@
+{
+  "meta": { "file": "variants", "title": "اختبار الحالات", "short": "اختبار الحالات · ليس للعرض", "numerals": "en" },
+  "slides": [
+    { "type": "cover", "eyebrow": "اختبار", "title": "عنوانٌ طويلٌ نسبيًّا يمتدّ إلى سطرين في الغلاف كي يُختبر الإجراء", "lead": "سطرُ سياق.", "meta": ["إذكاء", "2026"] },
+    { "type": "agenda", "items": [{"title":"أ","text":"شرح"},{"title":"ب","text":"شرح"},{"title":"ج","text":"شرح"},{"title":"د"},{"title":"هـ"},{"title":"و","text":"شرح"}] },
+    { "type": "section", "title": "قسمٌ بعنوانٍ أطول قليلًا من المعتاد في الفواصل", "lead": "جملةٌ تقريريّة." },
+    { "type": "points", "title": "نقاط بلا بطاقة دليل", "points": [{"title":"أولى","text":"نصّ"},{"title":"ثانية","text":"نصّ"},{"title":"ثالثة","text":"نصّ"},{"title":"رابعة","text":"نصّ"}] },
+    { "type": "points", "title": "نقاط وبطاقة بعنوان", "points": [{"title":"أولى","text":"نصّ"},{"title":"ثانية","text":"نصّ"}], "aside": {"kicker":"ملاحظة","title":"عنوانُ بطاقة الدليل في سطرين ربما","text":"نصٌّ قصيرٌ يشرح."} },
+    { "type": "stats", "title": "رقمان", "stats": [{"value":"1,250","unit":"قضية","label":"إجمالي","text":"شرح","highlight":true},{"value":"38","unit":"%","label":"نسبة","text":"شرح"}], "source": "المصدر: اختبار." },
+    { "type": "stats", "title": "ثلاثة أرقام", "stats": [{"value":"12","label":"أ"},{"value":"7","label":"ب","highlight":true},{"value":"3","label":"ج"}] },
+    { "type": "chart", "title": "أعمدة بسلسلتين", "chart": {"kind":"column","categories":["يناير","فبراير","مارس","أبريل"],"series":[{"name":"2025","values":[12,18,15,22]},{"name":"2026","values":[14,21,19,27]}]}, "takeaway": {"title":"نموٌّ مطّرد","points":["نقطة"]}, "source": "المصدر: اختبار." },
+    { "type": "chart", "title": "خطّ", "chart": {"kind":"line","categories":["Q1","Q2","Q3","Q4"],"series":[{"name":"الحِمل","values":[40,52,48,61]}]}, "takeaway": {"title":"ذروةٌ في الربع الرابع"} },
+    { "type": "chart", "title": "حلقة", "chart": {"kind":"doughnut","categories":["عمالية","تجارية","إدارية"],"series":[{"name":"التوزيع","values":[45,35,20]}],"format":"0\"%\""}, "takeaway": {"title":"العمالية الأكثر"} },
+    { "type": "cards", "title": "ثلاث بطاقات", "cards": [{"title":"أ","text":"نص"},{"title":"ب","text":"نص"},{"title":"ج","text":"نص"}] },
+    { "type": "cards", "title": "ست بطاقات", "cards": [{"title":"أ","text":"نص"},{"title":"ب","text":"نص"},{"title":"ج","text":"نص"},{"title":"د","text":"نص"},{"title":"هـ","text":"نص"},{"title":"و","text":"نص"}] },
+    { "type": "timeline", "title": "خمس مراحل", "steps": [{"title":"أ","text":"نص"},{"title":"ب","text":"نص"},{"title":"ج","text":"نص","state":"now"},{"title":"د","text":"نص"},{"title":"هـ","text":"نص"}] },
+    { "type": "table", "title": "جدول", "columns": ["البند","القيمة","الحالة"], "rows": [["أ","1,200","قائمة"],["ب","950","منتهية"]], "note": "ملاحظة." },
+    { "type": "quote", "text": "اقتباسٌ قصير.", "name": "قائل", "role": "صفة" },
+    { "type": "closing", "title": "شكرًا", "contacts": [{"label":"البريد","value":"info@example.com","latin":true}] }
+  ]
+}
