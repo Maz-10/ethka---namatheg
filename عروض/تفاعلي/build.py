@@ -2,12 +2,12 @@
 """يبني العرض التفاعلي ملفًّا واحدًا مكتفيًا بذاته يعمل بلا إنترنت.
 
 - الشعار يُقرأ من `identity/Logo.tsx` (المصدر الواحد للعلامة) ولا يُعاد رسمه.
-- خطّا ثمانية يُقتطعان للعربية واللاتينية الأساسية ويُضمَّنان بصيغة woff2.
+- خطّا ثمانية يُقتطعان للعربية واللاتينية الأساسية ويُضمَّنان بصيغة woff2، ويُحمَّلان بـ FontFace.
 
     pip install fonttools brotli
     python3 عروض/تفاعلي/build.py
 """
-import base64, io, re, sys
+import base64, io, json, re, sys
 from pathlib import Path
 from fontTools import subset
 from fontTools.ttLib import TTFont
@@ -56,12 +56,12 @@ def logo_paths() -> dict:
 
 def main():
     html = SRC.read_text(encoding='utf-8')
-    faces = []
-    for fam, wt, file in FONTS:
-        data = woff2(KIT / 'fonts' / file)
-        faces.append(f"@font-face{{font-family:'{fam}';font-weight:{wt};font-display:block;"
-                     f"src:url(data:font/woff2;base64,{data}) format('woff2')}}")
-    html = html.replace('/*__FONTS__*/', '\n'.join(faces))
+    # تُحمَّل بـ FontFace من البايتات نفسها، لا بروابط data: في CSS:
+    # بعض العارضات تحظر الخطوط من روابط data: فتعرض خطًّا بديلًا، والتحميل من البايتات لا يمرّ بذلك الحظر.
+    faces = [[fam, wt, woff2(KIT / 'fonts' / file)] for fam, wt, file in FONTS]
+    if html.count('/*__FONTJS__*/[]') != 1:
+        sys.exit('موضع الخطوط /*__FONTJS__*/[] غير موجود في المصدر')
+    html = html.replace('/*__FONTJS__*/[]', json.dumps(faces))
     for name, d in logo_paths().items():
         html = html.replace(f'__{name}__', d)
     left = re.findall(r'__D_[A-Z_]+__', html)
