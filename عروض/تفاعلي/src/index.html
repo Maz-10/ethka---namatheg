@@ -1,0 +1,1414 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>مجتمع إذكاء — اللقاء التأسيسي</title>
+<style>
+/*__FONTS__*/
+:root{
+  --night:#12171E;--night2:#1A2129;--night3:#212A34;--nightLine:#2A333F;
+  --cream:#F4F1EA;--paper:#FDFCF8;--sand:#EFEBE0;--line:#E4DFD2;
+  --ink:#232830;--ink2:#5F6672;--pearl:#EAE5D8;--pearl2:#A9B0BA;
+  --gold:#B9933A;--goldInk:#7E6029;--goldNight:#C6A55C;
+  --gut:clamp(18px,3.2vw,54px);
+  --padE:calc(var(--gut) + clamp(30px,4.4vw,88px));
+  --padS:clamp(22px,6vw,120px);
+  --tip:62vh;
+  --ease:cubic-bezier(.2,.8,.2,1);
+  --head:'Thm Serif',serif;--body:'Thm Sans',sans-serif;
+  --fs-hero:clamp(40px,6.2vw,104px);--fs-sec:clamp(34px,4.6vw,78px);
+  --fs-title:clamp(26px,3.1vw,52px);--fs-lead:clamp(16px,1.45vw,24px);
+  --fs-body:clamp(14px,1.12vw,19px);--fs-small:clamp(11px,.85vw,14px);
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--cream);color:var(--ink);font-family:var(--body);font-size:var(--fs-body);line-height:1.75;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{font-family:var(--head);font-weight:700;margin:0;line-height:1.3}
+p{margin:0}
+button{font:inherit;color:inherit;cursor:pointer}
+::selection{background:var(--gold);color:var(--night)}
+
+/* ═══ الخيط ═══ */
+#thread{position:fixed;top:0;right:var(--gut);width:2px;height:var(--tip);transform:translateX(50%);z-index:40;pointer-events:none;
+  background:linear-gradient(to bottom,rgba(185,147,58,0) 0,var(--gold) 14vh);transition:opacity .6s}
+#thread-future{position:fixed;top:var(--tip);bottom:0;right:var(--gut);width:0;border-right:1px dashed rgba(185,147,58,.35);transform:translateX(50%);z-index:40;pointer-events:none}
+#tip{position:fixed;top:var(--tip);right:var(--gut);width:16px;height:16px;transform:translate(50%,-50%) rotate(45deg);background:var(--gold);z-index:41;pointer-events:none;border-radius:2px;
+  box-shadow:0 0 0 5px rgba(185,147,58,.16),0 0 26px 6px rgba(185,147,58,.45)}
+#tip::after{content:"";position:absolute;inset:-9px;border:1px solid rgba(185,147,58,.5);border-radius:3px;animation:pulse 2.4s var(--ease) infinite}
+@keyframes pulse{0%{transform:scale(.6);opacity:1}100%{transform:scale(1.9);opacity:0}}
+#nodes{position:absolute;top:0;right:0;width:100%;height:0;z-index:39;pointer-events:none}
+.gnode{position:absolute;right:var(--gut);width:11px;height:11px;transform:translate(50%,-50%) rotate(45deg);border:1.5px solid rgba(185,147,58,.55);background:var(--cream);transition:background .5s,box-shadow .5s,border-color .5s;border-radius:1.5px}
+.gnode.dk{background:var(--night)}
+.gnode.on{background:var(--gold);border-color:var(--gold);box-shadow:0 0 14px 2px rgba(185,147,58,.55)}
+.gbranch{position:absolute;right:var(--gut);height:1px;background:var(--gold);transform-origin:right center;transform:scaleX(0);transition:transform .9s var(--ease);opacity:.55}
+.gbranch.on{transform:scaleX(1)}
+
+/* ═══ المشاهد ═══ */
+.scene{position:relative;min-height:100vh;padding:13vh var(--padS) 13vh var(--padE);display:flex;flex-direction:column;justify-content:center}
+.dark{background:var(--night);color:var(--pearl)}
+.sand{background:var(--sand)}
+.pin{display:block;padding:0}
+.pin>.stage{position:sticky;top:0;height:100vh;overflow:hidden;padding:11vh var(--padS) 9vh var(--padE);display:flex;flex-direction:column;justify-content:center}
+.wrap{max-width:1240px;width:100%}
+.eyebrow{display:flex;align-items:center;gap:.6em;font-size:var(--fs-small);font-weight:700;letter-spacing:.02em;color:var(--goldInk);margin-bottom:1.1em}
+.dark .eyebrow{color:var(--goldNight)}
+.eyebrow::before{content:"";width:.62em;height:.62em;background:var(--gold);transform:rotate(45deg);flex:none}
+.title{font-size:var(--fs-title);max-width:22ch}
+.lead{font-size:var(--fs-lead);color:var(--ink2);max-width:46ch;margin-top:.8em;line-height:1.7}
+.dark .lead{color:var(--pearl2)}
+.muted{color:var(--ink2)}.dark .muted{color:var(--pearl2)}
+.gold{color:var(--goldInk)}.dark .gold{color:var(--goldNight)}
+.tag{display:inline-block;font-size:var(--fs-small);padding:.15em .8em;border-radius:99px;border:1px solid var(--line);color:var(--ink2);background:var(--paper)}
+.dark .tag{border-color:var(--nightLine);background:var(--night2);color:var(--pearl2)}
+.note{font-size:var(--fs-small);color:var(--ink2);margin-top:1.4em;display:flex;gap:.5em;align-items:center}
+.dark .note{color:var(--pearl2)}
+.note::before{content:"";width:6px;height:6px;border:1px solid currentColor;transform:rotate(45deg)}
+
+/* ظهور عند بلوغ الخيط */
+.rv{opacity:0;transform:translateY(26px);transition:opacity .9s var(--ease),transform .9s var(--ease);transition-delay:calc(var(--i,0) * 110ms)}
+.rv.on{opacity:1;transform:none}
+.rv.fade{transform:none}
+.rv.side{transform:translateX(-30px)}
+.rv.side.on{transform:none}
+
+/* بطاقات */
+.grid{display:grid;gap:clamp(12px,1.4vw,22px)}
+.g2{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(4,1fr)}
+.card{position:relative;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:clamp(18px,1.8vw,30px);transition:transform .45s var(--ease),box-shadow .45s var(--ease),border-color .45s}
+.card:hover{transform:translateY(-6px);box-shadow:0 18px 40px -22px rgba(35,40,48,.35);border-color:rgba(185,147,58,.6)}
+.dark .card{background:var(--night2);border-color:var(--nightLine)}
+.card h4{font-size:clamp(17px,1.45vw,25px);margin-bottom:.35em}
+.card p{color:var(--ink2)}.dark .card p{color:var(--pearl2)}
+.card .num{font-family:var(--head);color:var(--goldInk);font-size:clamp(15px,1.1vw,19px);margin-bottom:.6em;display:flex;align-items:center;gap:.5em}
+.dark .card .num{color:var(--goldNight)}
+.card .num::after{content:"";height:1px;flex:1;background:var(--line);transform-origin:right;transform:scaleX(0);transition:transform 1s var(--ease) .3s}
+.card.on .num::after{transform:scaleX(1)}
+.dark .card .num::after{background:var(--nightLine)}
+.card::before{content:"";position:absolute;top:-1px;right:24px;width:12px;height:12px;background:var(--gold);transform:translateY(-50%) rotate(45deg) scale(0);transition:transform .6s var(--ease) .25s}
+.card.on::before{transform:translateY(-50%) rotate(45deg) scale(1)}
+
+/* قائمة على الخيط */
+.tlist{display:flex;flex-direction:column;gap:clamp(18px,2.6vh,34px);margin-top:clamp(26px,4vh,48px)}
+.tlist .it{max-width:60ch}
+.tlist .it h4{font-size:clamp(18px,1.6vw,28px)}
+.tlist .it p{color:var(--ink2);margin-top:.2em}
+.dark .tlist .it p{color:var(--pearl2)}
+
+/* ═══ الغلاف ═══ */
+#hero{min-height:100vh;overflow:hidden;align-items:flex-start}
+#hero canvas,.fieldcv{position:absolute;inset:0;width:100%;height:100%}
+#hero .wrap{position:relative;z-index:2}
+.lockup{width:clamp(170px,17vw,300px);margin-bottom:5vh}
+.lockup path{opacity:0}
+.lockup.on path{animation:inkIn 1.1s var(--ease) forwards}
+.lockup.on path.dm{animation:dropIn 1.2s var(--ease) .5s forwards}
+@keyframes inkIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes dropIn{0%{opacity:0;transform:translateY(-160px)}60%{opacity:1}100%{opacity:1;transform:none}}
+.hero-title{font-size:var(--fs-hero);line-height:1.15}
+.hero-title .w{display:inline-block;opacity:0;transform:translateY(.4em);transition:opacity 1s var(--ease),transform 1s var(--ease);transition-delay:calc(.35s + var(--i) * 120ms)}
+.on .hero-title .w,.hero-title.on .w{opacity:1;transform:none}
+.parts{display:flex;gap:14px;margin-top:6vh;flex-wrap:wrap}
+.part-btn{display:flex;align-items:center;gap:14px;padding:14px 22px 14px 26px;border:1px solid var(--nightLine);background:rgba(26,33,41,.75);backdrop-filter:blur(6px);border-radius:12px;text-align:right;transition:border-color .3s,transform .3s}
+.part-btn:hover{border-color:var(--gold);transform:translateY(-3px)}
+.part-btn b{font-family:var(--head);font-size:clamp(26px,2vw,36px);color:var(--gold);line-height:1}
+.part-btn span{display:block;font-size:var(--fs-small);color:var(--pearl2)}
+.part-btn strong{font-size:clamp(15px,1.2vw,20px)}
+.hint{position:absolute;bottom:4vh;left:var(--padS);font-size:var(--fs-small);color:var(--pearl2);display:flex;gap:10px;align-items:center;z-index:2}
+kbd{font-family:var(--body);border:1px solid var(--nightLine);border-bottom-width:2px;border-radius:5px;padding:0 .5em;font-size:.95em}
+
+/* ═══ السوق المضيء ═══ */
+.market .wrap{position:relative;z-index:2;pointer-events:none}
+.market .stage{cursor:crosshair}
+.mk-lines{position:relative;min-height:9.5em}
+.mk-line{position:absolute;top:0;right:0;font-family:var(--head);font-size:clamp(28px,3.6vw,62px);line-height:1.3;max-width:20ch;opacity:0;transform:translateY(24px);transition:opacity .8s var(--ease),transform .8s var(--ease)}
+.mk-line.cur{opacity:1;transform:none}
+.mk-line em{font-style:normal;color:var(--gold)}
+.meters{position:absolute;left:var(--padS);bottom:8vh;display:flex;gap:clamp(20px,3vw,56px);z-index:3}
+.meter b{display:block;font-family:var(--head);font-size:clamp(34px,4vw,70px);color:var(--gold);line-height:1.05;font-variant-numeric:tabular-nums}
+.meter span{font-size:var(--fs-small);color:var(--pearl2)}
+.mk-hint{position:absolute;right:var(--padE);bottom:8vh;z-index:3;font-size:var(--fs-small);color:var(--pearl2)}
+
+/* ═══ السلسلة ═══ */
+.chain{position:relative;margin-top:6vh}
+.chain svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.chain .cn-path{fill:none;stroke:var(--gold);stroke-width:2;stroke-dasharray:var(--len);stroke-dashoffset:var(--len);transition:stroke-dashoffset 2.6s var(--ease)}
+.chain.on .cn-path{stroke-dashoffset:0}
+.chain .cn-loop{fill:none;stroke:var(--goldInk);stroke-width:1.5;stroke-dasharray:6 7;opacity:0;transition:opacity 1s 2.6s}
+.chain.on .cn-loop{opacity:.8}
+.chain-row{position:relative;display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.cnode{text-align:center;padding-top:0;opacity:.25;transition:opacity .8s;transition-delay:calc(var(--i) * .5s)}
+.chain.on .cnode{opacity:1}
+.cnode .d{width:clamp(44px,4vw,66px);height:clamp(44px,4vw,66px);margin:0 auto 18px;position:relative}
+.cnode .d::before{content:"";position:absolute;inset:14%;background:var(--paper);border:1.5px solid var(--gold);transform:rotate(45deg);border-radius:4px;transition:background .6s;transition-delay:calc(var(--i) * .5s + .2s)}
+.chain.on .cnode .d::before{background:var(--gold)}
+.cnode .d i{position:absolute;inset:0;display:grid;place-items:center;font-style:normal;font-family:var(--head);font-size:clamp(14px,1.1vw,19px);color:var(--goldInk);z-index:1;transition:color .6s;transition-delay:calc(var(--i) * .5s + .2s)}
+.chain.on .cnode .d i{color:var(--paper)}
+.cnode h4{font-size:clamp(16px,1.35vw,23px)}
+.cnode p{font-size:var(--fs-small);color:var(--ink2);max-width:18ch;margin:.3em auto 0}
+.loop-cap{text-align:center;margin-top:7vh;font-size:var(--fs-small);color:var(--goldInk);opacity:0;transition:opacity 1s 3s}
+.chain.on .loop-cap{opacity:1}
+
+/* ═══ الاقتباس المتدرّج ═══ */
+.wq{font-family:var(--head);font-size:clamp(28px,3.5vw,60px);line-height:1.45;max-width:24ch}
+.wq .w{opacity:.14;transition:opacity .35s,color .35s}
+.wq .w.lit{opacity:1}
+.wq .w.k.lit{color:var(--gold)}
+.qmark{font-family:var(--head);color:var(--gold);font-size:clamp(60px,6vw,110px);line-height:.6;display:block;margin-bottom:.15em}
+.who{margin-top:4vh;font-size:var(--fs-small);color:var(--goldNight);display:flex;gap:.6em;align-items:center}
+
+/* ═══ الشبكة ═══ */
+.net{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);gap:4vw;align-items:center;height:100%}
+.verbs{display:flex;flex-direction:column;gap:2.2vh;margin-top:4vh}
+.verb{display:flex;gap:16px;align-items:baseline;opacity:.3;transition:opacity .6s}
+.verb.cur,.verb.done{opacity:1}
+.verb b{font-family:var(--head);font-size:clamp(20px,1.9vw,33px);font-weight:700}
+.verb.cur b{color:var(--goldInk)}
+.verb i{font-style:normal;font-family:var(--head);color:var(--goldInk);min-width:1.4em}
+.netbox{position:relative;height:72vh;border-radius:18px;background:var(--paper);border:1px solid var(--line);overflow:hidden}
+.netbox canvas{position:absolute;inset:0;width:100%;height:100%}
+.legend{position:absolute;bottom:14px;right:16px;left:16px;display:flex;gap:18px;flex-wrap:wrap;font-size:var(--fs-small);color:var(--ink2)}
+.legend span{display:flex;gap:7px;align-items:center}
+.legend s{width:10px;height:10px;transform:rotate(45deg);display:inline-block}
+.netmeters{position:absolute;top:14px;left:16px;display:flex;gap:22px;text-align:left}
+.netmeters b{display:block;font-family:var(--head);font-size:clamp(26px,2.4vw,42px);color:var(--goldInk);line-height:1}
+.netmeters span{font-size:var(--fs-small);color:var(--ink2)}
+.tooltip{position:absolute;pointer-events:none;background:var(--night);color:var(--pearl);font-size:var(--fs-small);padding:4px 10px;border-radius:6px;opacity:0;transition:opacity .2s;white-space:nowrap;transform:translate(50%,-140%)}
+
+/* ═══ من أنت ═══ */
+.who-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.35fr);gap:4vw;align-items:center;margin-top:5vh}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:12px;position:relative}
+.tabbtn{position:relative;aspect-ratio:1.5;border:1px solid var(--line);background:var(--paper);border-radius:14px;display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;padding:18px 20px;text-align:right;transition:all .45s var(--ease);overflow:hidden}
+.tabbtn small{font-size:var(--fs-small);color:var(--ink2)}
+.tabbtn b{font-family:var(--head);font-size:clamp(19px,1.8vw,30px)}
+.tabbtn::after{content:"";position:absolute;top:18px;left:20px;width:16px;height:16px;border:1.5px solid var(--gold);transform:rotate(45deg);transition:all .45s}
+.tabbtn.sel{background:var(--night);color:var(--pearl);border-color:var(--night)}
+.tabbtn.sel small{color:var(--pearl2)}
+.tabbtn.sel::after{background:var(--gold);box-shadow:0 0 18px 3px rgba(185,147,58,.6)}
+.tabbtn .bar{position:absolute;bottom:0;right:0;height:3px;background:var(--gold);width:0}
+.tabbtn.sel .bar{animation:tabbar var(--cyc,5s) linear forwards}
+.tabbtn.sel.hold .bar{animation:none;width:100%}
+@keyframes tabbar{to{width:100%}}
+.panel{min-height:44vh}
+.panel h3{font-size:var(--fs-title);margin-bottom:3.5vh}
+.panel h3 span{color:var(--goldInk)}
+.ben{display:flex;gap:18px;align-items:flex-start;padding:2vh 0;border-bottom:1px solid var(--line);opacity:0;transform:translateX(-20px);animation:benIn .7s var(--ease) forwards;animation-delay:calc(var(--i) * 140ms)}
+.ben:last-child{border-bottom:0}
+.ben i{font-style:normal;font-family:var(--head);color:var(--goldInk);font-size:1.2em;min-width:1.6em}
+.ben p{font-size:clamp(16px,1.35vw,22px)}
+@keyframes benIn{to{opacity:1;transform:none}}
+
+/* ═══ المسار المتنامي ═══ */
+.path{position:relative;margin-top:9vh;height:42vh}
+.path svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.pnode{position:absolute;transform:translate(50%,-50%);text-align:center;width:22%}
+.pnode .dm{margin:0 auto;background:var(--night3);border:1.5px solid var(--nightLine);transform:rotate(45deg);border-radius:6px;transition:all .8s var(--ease)}
+.pnode.on .dm{background:var(--gold);border-color:var(--gold);box-shadow:0 0 30px 4px rgba(185,147,58,.4)}
+.pnode h4{margin-top:3.2vh;font-size:clamp(17px,1.5vw,26px);opacity:.35;transition:opacity .6s}
+.pnode p{font-size:var(--fs-small);color:var(--pearl2);opacity:0;transition:opacity .6s .15s}
+.pnode.on h4,.pnode.on p{opacity:1}
+
+/* ═══ فقرات اللقاء ═══ */
+.agenda{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-top:7vh;position:relative}
+.ag{position:relative;padding:3vh 1.6vw 0 1.6vw;border-top:2px solid var(--line)}
+.ag::before{content:"";position:absolute;top:-2px;right:0;height:2px;width:100%;background:var(--gold);transform:scaleX(0);transform-origin:right;transition:transform .9s var(--ease);transition-delay:calc(var(--i) * .25s)}
+.agenda.on .ag::before{transform:scaleX(1)}
+.ag b{font-family:var(--head);font-size:clamp(34px,3.6vw,64px);color:var(--line);line-height:1;display:block;transition:color .8s;transition-delay:calc(var(--i) * .25s)}
+.agenda.on .ag b{color:var(--goldInk)}
+.ag h4{font-size:clamp(17px,1.5vw,26px);margin:.4em 0 .2em}
+.ag p{color:var(--ink2);font-size:var(--fs-small)}
+.here{position:absolute;top:-15px;right:1.6vw;background:var(--night);color:var(--pearl);font-size:11px;padding:3px 10px;border-radius:99px;opacity:0;transition:opacity .6s 1.3s}
+.agenda.on .here{opacity:1}
+.here::after{content:"";position:absolute;bottom:-4px;right:14px;width:8px;height:8px;background:var(--night);transform:rotate(45deg)}
+
+/* ═══ فاصل الجزء ═══ */
+.bignum{font-family:var(--head);font-size:clamp(120px,17vw,300px);line-height:.85;color:var(--gold);display:flex;align-items:center;gap:.08em}
+.secline{display:flex;gap:10px;margin-top:5vh}
+.secline i{width:12px;height:12px;border:1.5px solid var(--gold);transform:rotate(45deg)}
+.secline i.f{background:var(--gold)}
+
+/* ═══ السفر في الزمن ═══ */
+.year{font-family:var(--head);font-size:clamp(90px,13vw,230px);line-height:1;color:var(--gold);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.yrow{display:flex;align-items:flex-end;justify-content:space-between;gap:3vw;flex-wrap:wrap}
+.ydelta{font-family:var(--head);font-size:clamp(20px,2vw,34px);color:var(--pearl2)}
+.ydelta b{color:var(--pearl)}
+.axis{position:relative;height:56px;margin-top:4vh}
+.axis .ln{position:absolute;top:50%;right:0;left:0;height:1px;background:var(--nightLine)}
+.axis .fill{position:absolute;top:50%;right:0;height:2px;margin-top:-.5px;background:var(--gold)}
+.axis .mk{position:absolute;top:50%;width:18px;height:18px;background:var(--gold);transform:translate(50%,-50%) rotate(45deg);box-shadow:0 0 22px 4px rgba(185,147,58,.5)}
+.axis .lab{position:absolute;top:100%;font-size:var(--fs-small);color:var(--pearl2);margin-top:8px}
+.tt-lines{position:relative;min-height:5.2em;margin-top:6vh}
+.tt-line{position:absolute;inset:0 0 auto 0;font-family:var(--head);font-size:clamp(24px,2.7vw,46px);opacity:0;transform:translateY(16px);transition:all .7s var(--ease);max-width:26ch}
+.tt-line.cur{opacity:1;transform:none}
+
+/* ═══ الرسم المفاهيمي ═══ */
+.qwrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:4vw;align-items:center;margin-top:4vh}
+.q3{display:flex;flex-direction:column;gap:2.4vh}
+.q3 .it{display:flex;gap:16px;align-items:baseline}
+.q3 .it b{font-family:var(--head);color:var(--goldInk);font-size:1.4em;min-width:1.2em}
+.q3 .it h4{font-size:clamp(18px,1.6vw,27px)}
+.q3 .it p{color:var(--ink2)}
+.chart{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:22px 24px 18px}
+.chart h4{font-size:clamp(19px,1.7vw,29px)}
+.chart svg{width:100%;height:auto;display:block;margin-top:10px;overflow:visible}
+.readouts{display:flex;gap:20px;margin-top:6px}
+.ro{flex:1;padding:10px 14px;border-radius:10px;background:var(--cream)}
+.ro b{display:block;font-family:var(--head);font-size:clamp(26px,2.5vw,44px);line-height:1.1;font-variant-numeric:tabular-nums}
+.ro span{font-size:var(--fs-small);color:var(--ink2)}
+.ro.g b{color:var(--goldInk)}
+.range{display:flex;align-items:center;gap:14px;margin-top:14px;font-size:var(--fs-small);color:var(--ink2)}
+input[type=range]{flex:1;-webkit-appearance:none;appearance:none;height:2px;background:var(--line);direction:rtl}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;background:var(--gold);transform:rotate(45deg);border-radius:3px;cursor:grab}
+input[type=range]::-moz-range-thumb{width:16px;height:16px;background:var(--gold);border:0;border-radius:3px;transform:rotate(45deg)}
+
+/* ═══ بطاقات المسارات ═══ */
+.tracks .card{min-height:30vh;display:flex;flex-direction:column;cursor:pointer}
+.tracks .card .big{font-family:var(--head);font-size:clamp(50px,5vw,92px);color:var(--line);line-height:1;transition:color .5s}
+.tracks .card.on .big{color:var(--gold)}
+.tracks .card h4{margin-top:auto}
+
+/* ═══ محاكاة ملف القضية ═══ */
+.court{display:grid;grid-template-columns:minmax(0,.85fr) auto minmax(0,1.4fr);gap:2.4vw;align-items:stretch;margin-top:4.5vh}
+.cfile{position:relative;background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:20px;overflow:hidden}
+.cfile .hd{display:flex;justify-content:space-between;align-items:baseline}
+.cfile .hd b{font-family:var(--head);font-size:clamp(30px,3vw,52px);color:var(--ink);font-variant-numeric:tabular-nums}
+.pages{margin-top:14px;display:flex;flex-direction:column;gap:7px}
+.pages i{display:block;height:9px;border-radius:3px;background:var(--line);width:calc(55% + var(--w) * 45%);transition:background .4s,opacity .4s}
+.pages i.read{background:rgba(185,147,58,.35)}
+.beam{position:absolute;right:0;left:0;height:60px;top:-60px;background:linear-gradient(to bottom,rgba(185,147,58,0),rgba(185,147,58,.28),rgba(185,147,58,0));border-bottom:2px solid var(--gold);pointer-events:none}
+.court.scan .beam{animation:beam 2.4s var(--ease) forwards}
+@keyframes beam{to{top:100%}}
+.arrow{display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:28px;opacity:.25;transition:opacity .6s}
+.court.scan .arrow{opacity:1}
+.arrow svg{width:46px}
+.brief{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:20px 22px;display:flex;flex-direction:column;gap:12px}
+.brief .row{display:grid;grid-template-columns:8.5em 1fr;gap:12px;padding-bottom:10px;border-bottom:1px dashed var(--line);opacity:0;transform:translateY(10px);transition:all .6s var(--ease)}
+.brief .row.on{opacity:1;transform:none}
+.brief .row>b{font-size:var(--fs-small);color:var(--goldInk)}
+.brief .row div{font-size:clamp(13px,1.02vw,17px)}
+.pill{display:inline-block;font-size:11px;padding:0 8px;border-radius:99px;margin-inline-start:6px;border:1px solid var(--line);color:var(--ink2);vertical-align:middle}
+.pill.ok{border-color:rgba(47,125,91,.4);color:#2F7D5B}
+.pill.g{border-color:rgba(185,147,58,.5);color:var(--goldInk)}
+.verdict{margin-top:auto;border:1.5px dashed var(--gold);border-radius:12px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;opacity:0;transition:opacity .8s}
+.verdict.on{opacity:1}
+.verdict b{font-family:var(--head);font-size:clamp(17px,1.5vw,26px)}
+.verdict .caret{width:2px;height:1.4em;background:var(--gold);animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+
+/* ═══ الفرز: يبقى / يتغيّر ═══ */
+.sorter{margin-top:4.5vh}
+.pile{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;min-height:0}
+.cols{display:grid;grid-template-columns:1.5fr 1fr;gap:2vw}
+.col{border-radius:16px;padding:20px;min-height:12vh}
+.col.ch{background:var(--paper);border:1px solid var(--line)}
+.col.st{background:var(--night);color:var(--pearl)}
+.col>h4{font-size:clamp(17px,1.4vw,24px);margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.col>h4 small{font-family:var(--body);font-weight:400;font-size:var(--fs-small);color:var(--ink2)}
+.col.st>h4 small{color:var(--pearl2)}
+.col>h4::before{content:"";width:10px;height:10px;transform:rotate(45deg);border:1.5px solid var(--gold)}
+.col.st>h4::before{background:var(--gold)}
+.col .chips{display:flex;flex-direction:column;gap:9px}
+.chip{display:block;padding:9px 14px;border-radius:9px;background:var(--cream);border:1px solid var(--line);font-size:clamp(13px,1.02vw,17px);will-change:transform}
+.col.st .chip{background:var(--night2);border-color:var(--nightLine);color:var(--pearl)}
+.pile .chip{background:var(--paper)}
+.sort-again{margin-top:14px;background:none;border:0;font-size:var(--fs-small);color:var(--goldInk);display:inline-flex;gap:6px;align-items:center}
+
+/* ═══ تيّار العقود ═══ */
+.flow{position:relative;margin-top:3.5vh;background:var(--paper);border:1px solid var(--line);border-radius:18px;overflow:hidden}
+.flow canvas{display:block;width:100%;height:46vh}
+.flowbar{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:14px 18px;border-top:1px solid var(--line);flex-wrap:wrap}
+.seg{display:inline-flex;background:var(--cream);border-radius:99px;padding:4px}
+.seg button{border:0;background:none;padding:6px 18px;border-radius:99px;font-size:var(--fs-small);transition:all .3s}
+.seg button.sel{background:var(--night);color:var(--pearl)}
+.fm{display:flex;gap:clamp(16px,2.4vw,40px)}
+.fm div{text-align:center}
+.fm b{display:block;font-family:var(--head);font-size:clamp(22px,2vw,36px);line-height:1;font-variant-numeric:tabular-nums}
+.fm span{font-size:11px;color:var(--ink2)}
+.fm .g b{color:var(--goldInk)}
+.fm .r b{color:#A84545}
+
+/* ═══ السلّم ═══ */
+.ladder-wrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:4vw;align-items:center;margin-top:3vh}
+.ladder{position:relative;height:66vh;display:flex;flex-direction:column-reverse;gap:1.1vh;padding:0 30px;border-right:2px solid var(--line);border-left:2px solid var(--line)}
+.rung{position:relative;flex:1;display:flex;align-items:center;justify-content:space-between;padding:0 18px;border-radius:9px;background:var(--paper);border:1px solid var(--line);transition:all .8s var(--ease);font-size:clamp(14px,1.15vw,19px)}
+.rung small{font-size:11px;color:var(--ink2);opacity:0;transition:opacity .5s}
+.rung.ai{background:transparent;border-style:dashed;color:var(--ink2);opacity:.55}
+.rung.ai small{opacity:1}
+.rung.nw{background:var(--night);color:var(--pearl);border-color:var(--night)}
+.rung.nw small{opacity:1;color:var(--goldNight)}
+.rung .face{transition:opacity .4s}
+.lstage{position:relative;min-height:12em}
+.lstage>div{position:absolute;inset:0 0 auto 0;opacity:0;transform:translateY(16px);transition:all .7s var(--ease)}
+.lstage>div.cur{opacity:1;transform:none}
+.lstage h3{font-size:var(--fs-title)}
+.lstage p{font-size:var(--fs-lead);color:var(--ink2);margin-top:.6em;max-width:36ch}
+
+/* ═══ تمرين الخطأ ═══ */
+.exam{margin-top:4vh;background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:clamp(20px,2.4vw,40px);max-width:980px}
+.exam .bot{display:flex;gap:10px;align-items:center;font-size:var(--fs-small);color:var(--ink2);margin-bottom:14px}
+.exam .bot i{width:10px;height:10px;background:var(--ink2);transform:rotate(45deg)}
+.ans{font-size:clamp(18px,1.55vw,27px);line-height:2}
+.ans span{cursor:pointer;border-radius:6px;padding:2px 4px;transition:background .3s,box-shadow .3s}
+.ans span:hover{background:var(--sand)}
+.ans span.bad{background:rgba(168,69,69,.12);box-shadow:inset 0 -2px 0 #A84545}
+.ans span.good{background:rgba(47,125,91,.08)}
+.ans span.miss{background:var(--sand);box-shadow:inset 0 -2px 0 var(--ink2)}
+.exres{margin-top:18px;min-height:3.4em;font-size:clamp(15px,1.2vw,20px)}
+.exres b{color:var(--goldInk)}
+
+/* ═══ قلب البطاقة والتسعير ═══ */
+.flipwrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:3vw;margin-top:4vh;align-items:stretch}
+.flip{perspective:1400px;cursor:pointer;min-height:30vh}
+.flip .in{position:relative;height:100%;min-height:30vh;transition:transform 1.2s var(--ease);transform-style:preserve-3d}
+.flip.on.turned .in{transform:rotateY(180deg)}
+.flip .fc{position:absolute;inset:0;backface-visibility:hidden;border-radius:18px;padding:clamp(20px,2vw,34px);display:flex;flex-direction:column;justify-content:space-between}
+.flip .front{background:var(--paper);border:1px solid var(--line)}
+.flip .back{background:var(--night);color:var(--pearl);transform:rotateY(180deg)}
+.flip small{font-size:var(--fs-small);color:var(--ink2)}
+.flip .back small{color:var(--goldNight)}
+.flip h3{font-size:clamp(24px,2.5vw,42px)}
+.flip .back h3 em{font-style:normal;color:var(--gold)}
+.prices{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:clamp(20px,2vw,34px);display:flex;flex-direction:column;gap:14px}
+.prices>small{font-size:var(--fs-small);color:var(--ink2)}
+.price{display:flex;align-items:center;gap:12px;font-size:clamp(17px,1.5vw,25px);font-family:var(--head);transition:all .8s var(--ease)}
+.price.old{position:relative;color:var(--ink2)}
+.price.old::after{content:"";position:absolute;right:0;top:55%;height:2px;background:#A84545;width:0;transition:width .8s var(--ease) .6s}
+.prices.on .price.old::after{width:9.5em}
+.price.nw{opacity:0;transform:translateX(-20px);transition-delay:calc(1.2s + var(--i) * .25s)}
+.prices.on .price.nw{opacity:1;transform:none}
+.price.nw::before{content:"";width:10px;height:10px;background:var(--gold);transform:rotate(45deg)}
+
+/* ═══ خريطة الخانات ═══ */
+.map{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:4vw;align-items:center;margin-top:3vh}
+.orbit{position:relative;aspect-ratio:1;margin:auto;width:min(100%,62vh)}
+.orbit svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.orbit line{stroke:var(--gold);stroke-width:1.2;stroke-dasharray:var(--l);stroke-dashoffset:var(--l);transition:stroke-dashoffset 1s var(--ease);transition-delay:calc(var(--i) * .18s + .4s)}
+.orbit.on line{stroke-dashoffset:0}
+.cell{position:absolute;transform:translate(50%,-50%) scale(.6);opacity:0;width:27%;aspect-ratio:1;display:grid;place-items:center;text-align:center;transition:transform .8s var(--ease),opacity .8s;transition-delay:calc(var(--i) * .18s)}
+.orbit.on .cell{transform:translate(50%,-50%) scale(1);opacity:1}
+.cell::before{content:"";position:absolute;inset:14%;background:var(--paper);border:1.5px solid var(--line);transform:rotate(45deg);border-radius:10px;transition:all .45s var(--ease)}
+.cell span{position:relative;font-family:var(--head);font-size:clamp(12px,1.05vw,18px);line-height:1.35;max-width:7.5em}
+.cell.sel::before,.cell:hover::before{background:var(--night);border-color:var(--gold)}
+.cell.sel span,.cell:hover span{color:var(--pearl)}
+.cell.core::before{background:var(--gold);border-color:var(--gold)}
+.cell.core span{color:var(--night)}
+.cell.core.sel::before{box-shadow:0 0 34px 6px rgba(185,147,58,.45);background:var(--gold)}
+.cell.core.sel span{color:var(--night)}
+.mapdetail{min-height:16em}
+.mapdetail h3{font-size:var(--fs-title)}
+.mapdetail ul{list-style:none;padding:0;margin:3vh 0 0;display:flex;flex-direction:column;gap:1.6vh}
+.mapdetail li{display:flex;gap:12px;align-items:center;font-size:clamp(16px,1.35vw,23px);animation:benIn .6s var(--ease) both;animation-delay:calc(var(--i) * 120ms)}
+.mapdetail li::before{content:"";width:8px;height:8px;background:var(--gold);transform:rotate(45deg);flex:none}
+
+/* ═══ المكوّنات الأربعة ═══ */
+.assemble{position:relative;height:74vh;margin-top:2vh}
+.ing{position:absolute;width:clamp(150px,15vw,250px);aspect-ratio:1;transform:translate(50%,-50%);display:grid;place-items:center;text-align:center}
+.ing::before{content:"";position:absolute;inset:15%;background:var(--night2);border:1.5px solid var(--nightLine);transform:rotate(45deg);border-radius:12px;transition:all .6s}
+.ing.in::before{border-color:var(--gold)}
+.ing div{position:relative;max-width:8.5em}
+.ing h4{font-size:clamp(15px,1.35vw,23px);color:var(--pearl)}
+.ing p{font-size:11.5px;color:var(--pearl2);line-height:1.5;margin-top:4px;max-height:0;overflow:hidden;opacity:0;transition:all .5s}
+.ing.spread p{max-height:6em;opacity:1}
+.core-dm{position:absolute;width:clamp(40px,3.2vw,62px);aspect-ratio:1;transform:translate(50%,-50%) rotate(45deg) scale(0);background:var(--gold);border-radius:8px;box-shadow:0 0 60px 14px rgba(185,147,58,.45);transition:transform 1s var(--ease)}
+.core-dm.on{transform:translate(50%,-50%) rotate(45deg) scale(1)}
+.core-cap{position:absolute;left:0;right:0;bottom:0;text-align:center;font-family:var(--head);font-size:clamp(22px,2.3vw,40px);opacity:0;transform:translateY(14px);transition:all .8s var(--ease)}
+.core-cap.on{opacity:1;transform:none}
+.core-cap em{font-style:normal;color:var(--gold)}
+
+/* ═══ سؤال القاعة ═══ */
+.ask .q{font-family:var(--head);font-size:clamp(30px,3.9vw,68px);line-height:1.35;max-width:22ch;min-height:2.7em}
+.ask .q .car{display:inline-block;width:3px;height:.9em;background:var(--gold);vertical-align:middle;margin-inline-start:6px;animation:blink 1s steps(1) infinite}
+.ask .sub{font-size:var(--fs-lead);color:var(--pearl2);margin-top:2vh;opacity:0;transition:opacity 1s}
+.ask .sub.on{opacity:1}
+.poll{margin-top:5vh;display:flex;flex-direction:column;gap:12px;max-width:880px}
+.opt{position:relative;display:flex;justify-content:space-between;align-items:center;padding:14px 20px;border:1px solid var(--nightLine);border-radius:12px;background:var(--night2);overflow:hidden;text-align:right;transition:border-color .3s}
+.opt:hover{border-color:var(--gold)}
+.opt .fillbar{position:absolute;inset:0 0 0 auto;width:0;background:linear-gradient(to left,rgba(185,147,58,.32),rgba(185,147,58,.12));transition:width .8s var(--ease)}
+.opt span,.opt b{position:relative}
+.opt span{font-size:clamp(15px,1.3vw,22px)}
+.opt b{font-family:var(--head);font-size:clamp(17px,1.4vw,24px);color:var(--goldNight);font-variant-numeric:tabular-nums;min-width:3.2em;text-align:left}
+.opt .cnt{position:relative;font-style:normal;font-size:var(--fs-small);color:var(--pearl2);margin-inline-start:auto;margin-inline-end:18px}
+.opt.top{border-color:var(--gold)}
+.pollbar{display:flex;gap:18px;margin-top:10px;font-size:var(--fs-small);color:var(--pearl2);align-items:center}
+.pollbar button{background:none;border:0;color:var(--goldNight);font-size:var(--fs-small);padding:0}
+.wall{display:flex;flex-wrap:wrap;gap:12px;margin-top:3vh;max-width:1100px}
+.sticky{background:var(--paper);color:var(--ink);padding:12px 16px;border-radius:4px 14px 4px 4px;font-size:clamp(14px,1.15vw,19px);transform:rotate(var(--r));box-shadow:0 10px 24px -14px rgba(0,0,0,.7);animation:stick .6s var(--ease) both;max-width:24ch;position:relative}
+.sticky::before{content:"";position:absolute;top:-5px;right:14px;width:10px;height:10px;background:var(--gold);transform:rotate(45deg)}
+.sticky button{position:absolute;top:2px;left:6px;border:0;background:none;color:var(--ink2);font-size:12px;opacity:0}
+.sticky:hover button{opacity:1}
+@keyframes stick{from{opacity:0;transform:translateY(-30px) rotate(0)}}
+.wallin{display:flex;gap:10px;margin-top:4vh;max-width:880px}
+.wallin input{flex:1;font:inherit;font-size:clamp(15px,1.25vw,21px);padding:14px 18px;border-radius:12px;border:1px solid var(--nightLine);background:var(--night2);color:var(--pearl);outline:none}
+.wallin input:focus{border-color:var(--gold)}
+.wallin button{border:0;border-radius:12px;padding:0 24px;background:var(--gold);color:var(--night);font-weight:700}
+
+/* ═══ الختام ═══ */
+.finale{align-items:flex-start}
+.finale .lockup{width:clamp(150px,14vw,240px);margin-bottom:6vh}
+
+/* ═══ أدوات العرض ═══ */
+#bar{position:fixed;top:14px;left:14px;z-index:60;display:flex;gap:8px;align-items:center;font-size:12px}
+#bar button{border:1px solid rgba(169,176,186,.35);background:rgba(18,23,30,.55);backdrop-filter:blur(8px);color:#EAE5D8;border-radius:8px;padding:6px 11px;font-size:12px}
+#bar #where{color:#A9B0BA;background:rgba(18,23,30,.55);backdrop-filter:blur(8px);border-radius:8px;padding:6px 11px;font-variant-numeric:tabular-nums}
+#menu{position:fixed;inset:0;z-index:70;background:rgba(18,23,30,.985);color:var(--pearl);display:none;padding:8vh 8vw;overflow:auto}
+#menu.open{display:block}
+#menu h3{font-size:var(--fs-title);margin-bottom:4vh}
+#menu ol{list-style:none;padding:0;margin:0;columns:2;column-gap:5vw}
+#menu li{break-inside:avoid;margin-bottom:10px}
+#menu li.part{font-family:var(--head);color:var(--goldNight);margin-top:18px;font-size:1.1em}
+#menu a{color:var(--pearl);text-decoration:none;display:flex;gap:12px}
+#menu a:hover{color:var(--gold)}
+#menu a i{font-style:normal;color:var(--pearl2);min-width:2em;font-variant-numeric:tabular-nums}
+#menu .keys{margin-top:5vh;color:var(--pearl2);font-size:var(--fs-small);display:flex;gap:24px;flex-wrap:wrap}
+@media (max-width:900px){
+  .g3,.g4{grid-template-columns:1fr 1fr}.net,.who-grid,.qwrap,.ladder-wrap,.map,.flipwrap,.court,.cols{grid-template-columns:1fr}
+  .chain-row{grid-template-columns:1fr 1fr}.agenda{grid-template-columns:1fr 1fr;row-gap:5vh}
+  .court .arrow{transform:rotate(-90deg)}
+}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01s!important;transition-duration:.01s!important}}
+</style>
+</head>
+<body>
+<div id="thread"></div><div id="thread-future"></div><div id="tip"></div>
+<div id="nodes"></div>
+<div id="bar"><span id="where">١</span><button id="menuBtn" title="الفهرس (M)">الفهرس</button><button id="fsBtn" title="ملء الشاشة (F)">ملء الشاشة</button></div>
+
+<main id="main">
+
+<!-- ══════════════ الغلاف ══════════════ -->
+<section class="scene dark" id="hero" data-title="الغلاف">
+  <canvas id="heroField"></canvas>
+  <div class="wrap">
+    <svg class="lockup rv fade" data-off="-9000" id="heroLogo" viewBox="18 -976 3701 1307" aria-label="إذكاء"><path d="__D_NAME__" fill="#EAE5D8"/><path d="__D_DOTS__" fill="#EAE5D8"/><path d="__D_NAME_GOLD__" fill="#B9933A"/><path class="dm" d="__D_DIAMOND__" fill="#B9933A"/></svg>
+    <div class="eyebrow rv" data-off="-9000" style="--i:2">ملتقى القانون والتقنية · اللقاء التأسيسي</div>
+    <h1 class="hero-title rv fade" data-off="-9000" data-words>مجتمع إذكاء</h1>
+    <p class="lead rv" data-off="-9000" style="--i:4">مساحة يلتقي فيها المهتمون بالقانون والتقنية؛ لتتعارف العقول، وتتلاقى المصالح، وتتكامل القدرات، وتنشأ المشروعات.</p>
+    <div class="parts rv" data-off="-9000" style="--i:6">
+      <button class="part-btn" data-go="#p1"><b>١</b><div><span>الافتتاحية</span><strong>لماذا نجتمع؟ ومن نحن؟</strong></div></button>
+      <button class="part-btn" data-go="#p2"><b>٢</b><div><span>العرض الرئيس</span><strong>مستقبل المهنة القانونية</strong></div></button>
+    </div>
+  </div>
+  <div class="hint">مرّر، أو اضغط <kbd>←</kbd> <kbd>مسافة</kbd> للتقدّم · <kbd>M</kbd> للفهرس</div>
+</section>
+
+<!-- ══════════════ الجزء الأول ══════════════ -->
+<section class="scene dark" data-auto id="p1" data-title="الجزء الأول: الافتتاحية" data-part="الافتتاحية">
+  <div class="wrap">
+    <div class="bignum rv">١</div>
+    <h2 class="rv" style="--i:1;font-size:var(--fs-sec);margin-top:3vh">الافتتاحية</h2>
+    <p class="lead rv" style="--i:2">لماذا نجتمع؟ وما مجتمع إذكاء؟ وما الذي ينتظرنا في هذا اللقاء؟</p>
+  </div>
+</section>
+
+<!-- السوق المضيء -->
+<section class="scene dark pin market" data-pin="market" data-len="3" data-steps="4" data-title="سوق جديد يتشكّل">
+  <div class="stage">
+    <canvas class="fieldcv" id="marketField"></canvas>
+    <div class="wrap">
+      <div class="eyebrow">لماذا نجتمع؟</div>
+      <div class="mk-lines">
+        <div class="mk-line">نحن أمام سوق جديد يتشكّل، هو <em>سوق التقنية القانونية.</em></div>
+        <div class="mk-line">وكل سوق جديد يواجه تحديًا أساسيًا: <em>إقناع الناس بالحاجة إليه،</em> وإيقاظ وعيهم بما يستطيع تقديمه.</div>
+        <div class="mk-line">والوعي لا يتحقق بالمحاضرات وحدها، بل <em>بمشروعات حقيقية</em> يلمس الناس أثرها.</div>
+        <div class="mk-line"><em>فالوعي يسبق الاستثمار،</em> والمشروعات الناجحة لا تنمو في السوق فحسب، بل تُنمّي السوق نفسه.</div>
+      </div>
+    </div>
+    <div class="meters"><div class="meter"><b id="mkProj">٠</b><span>مشروعات في السوق</span></div><div class="meter"><b id="mkLit">٠٪</b><span>من السوق أضاءه الوعي</span></div></div>
+    <div class="mk-hint">انقر في أي موضع لتضيف مشروعًا، وشاهد أثره فيما حوله</div>
+  </div>
+</section>
+
+<!-- السلسلة -->
+<section class="scene" data-title="من المشروع إلى السوق">
+  <div class="wrap">
+    <div class="eyebrow rv">كيف يتكوّن الوعي؟</div>
+    <h2 class="title rv" style="--i:1">الوعي لا يُبنى بالتنظير وحده، بل بمشروعات حقيقية</h2>
+    <div class="chain rv fade" id="chain">
+      <svg><path class="cn-path" id="chainPath"/><path class="cn-loop" id="chainLoop"/></svg>
+      <div class="chain-row">
+        <div class="cnode" style="--i:0"><div class="d"><i>١</i></div><h4>احتياج قائم</h4><p>مشكلة يعيشها الناس فعلًا</p></div>
+        <div class="cnode" style="--i:1"><div class="d"><i>٢</i></div><h4>مشروع حقيقي</h4><p>حلّ يصل إلى الناس</p></div>
+        <div class="cnode" style="--i:2"><div class="d"><i>٣</i></div><h4>أثر ملموس</h4><p>يجرّبونه ويلمسون نفعه</p></div>
+        <div class="cnode" style="--i:3"><div class="d"><i>٤</i></div><h4>وعي</h4><p>قناعة بالحاجة إلى السوق</p></div>
+        <div class="cnode" style="--i:4"><div class="d"><i>٥</i></div><h4>استثمار</h4><p>يتبع الوعي ولا يسبقه</p></div>
+      </div>
+      <div class="loop-cap">◆ والسوق الذي ينمو يولّد احتياجات جديدة، فتبدأ الدورة من جديد</div>
+    </div>
+  </div>
+</section>
+
+<!-- الأركان الثلاثة -->
+<section class="scene" data-title="فكرة مجتمع إذكاء">
+  <div class="wrap">
+    <div class="eyebrow rv">ومن هنا جاءت الفكرة</div>
+    <h2 class="title rv" style="--i:1">أن نجمع رواد هذا الملتقى بين القانون والتقنية</h2>
+    <p class="lead rv" style="--i:2">لنُسهم في ثلاثة أمور:</p>
+    <div class="grid g3" style="margin-top:5vh">
+      <div class="card rv" style="--i:3"><div class="num">٠١</div><h4>بناء الوعي</h4><p>بما يستطيع هذا السوق أن يقدّمه للقانونيين والمؤسسات والناس.</p></div>
+      <div class="card rv" style="--i:5"><div class="num">٠٢</div><h4>تهيئة فرص التعاون</h4><p>بين من يملك المعرفة، ومن يملك التقنية، ومن يملك الاحتياج.</p></div>
+      <div class="card rv" style="--i:7"><div class="num">٠٣</div><h4>تحفيز نشوء المشروعات</h4><p>التي تدفع هذا السوق إلى الأمام.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- الاقتباس -->
+<section class="scene dark pin" data-pin="quote1" data-len="1.6" data-steps="2" data-title="نجاح للسوق بأكمله">
+  <div class="stage"><div class="wrap">
+    <span class="qmark">«</span>
+    <p class="wq" id="quote1" data-keys="نجاح للسوق بأكمله|تنمو بنموه|بازدهاره">كل مشروع ينجح في هذا المجال، وكل مؤسسة تتبنّى حلًا قانونيًا تقنيًا، هو نجاح للسوق بأكمله. وإذكاء جزء من هذا السوق، تنمو بنموه وتزدهر بازدهاره.</p>
+    <div class="who">◆ مجتمع إذكاء</div>
+  </div></div>
+</section>
+
+<!-- الشبكة -->
+<section class="scene pin" data-pin="net" data-len="3" data-steps="4" data-title="ما مجتمع إذكاء؟">
+  <div class="stage">
+    <div class="net">
+      <div>
+        <div class="eyebrow">ما مجتمع إذكاء؟</div>
+        <h2 class="title">مساحة إنسانية ومهنية يلتقي فيها المهتمون بالقانون والتقنية</h2>
+        <div class="verbs" id="verbs">
+          <div class="verb"><i>١</i><b>لتتعارف العقول</b></div>
+          <div class="verb"><i>٢</i><b>وتتلاقى المصالح</b></div>
+          <div class="verb"><i>٣</i><b>وتتكامل القدرات</b></div>
+          <div class="verb"><i>٤</i><b>وتنشأ فرص التعاون والمشروعات</b></div>
+        </div>
+      </div>
+      <div class="netbox" id="netbox">
+        <canvas id="netCv"></canvas>
+        <div class="netmeters"><div><b id="nLinks">٠</b><span>صلة</span></div><div><b id="nProj">٠</b><span>مشروعًا</span></div></div>
+        <div class="legend"><span><s style="background:#232830"></s>كيان</span><span><s style="border:1.5px solid #232830"></s>فرد</span><span><s style="background:#5F6672"></s>صاحب مشروع</span><span><s style="background:#C9C3B4"></s>باحث</span><span><s style="background:#B9933A"></s>مشروع ينشأ</span></div>
+        <div class="tooltip" id="netTip"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- من أنت -->
+<section class="scene" data-title="لكل حاضر منفعة" id="whoScene">
+  <div class="wrap">
+    <div class="eyebrow rv">منافع الانضمام</div>
+    <h2 class="title rv" style="--i:1">من أنت؟ وماذا ستجد هنا؟</h2>
+    <div class="who-grid">
+      <div class="tabs rv" style="--i:2" id="tabs" data-enter="whoStart" data-leave="whoStop">
+        <button class="tabbtn" data-k="0"><small>إن كنت</small><b>كيانًا</b><i class="bar"></i></button>
+        <button class="tabbtn" data-k="1"><small>إن كنت</small><b>فردًا</b><i class="bar"></i></button>
+        <button class="tabbtn" data-k="2"><small>إن كنت</small><b>صاحب مشروع</b><i class="bar"></i></button>
+        <button class="tabbtn" data-k="3"><small>إن كنت</small><b>باحثًا</b><i class="bar"></i></button>
+      </div>
+      <div class="panel rv" style="--i:3" id="whoPanel"></div>
+    </div>
+  </div>
+</section>
+
+<!-- المبدأ -->
+<section class="scene sand" data-title="نهيّئ الفرص">
+  <div class="wrap">
+    <div class="eyebrow rv">مبدأ</div>
+    <h2 class="title rv" style="--i:1">نهيّئ الفرص، ولا نشترط أن نملك ما ينشأ عنها</h2>
+    <p class="lead rv" style="--i:2">لا يشترط أن يتبنّى مجتمع إذكاء المشروعات الناشئة عن لقاءاته أو يمتلكها.</p>
+    <div class="tlist">
+      <div class="it tn rv"><h4>نهيّئ فرص التعارف والتكامل والتعاون</h4><p>نجمع من يحتاج بعضهم إلى بعض، ثم نترك لهم أن يبنوا.</p></div>
+      <div class="it tn rv"><h4>وندعم ثقافة العطاء</h4><p>تبادل المعرفة والخبرة بين الأعضاء، ليثري كلٌّ منهم الآخر.</p></div>
+      <div class="it tn rv"><h4>والمشروعات لأصحابها</h4><p>المقصود أن تنشأ وتنجح، لا أن تُنسب إلينا.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- المسار -->
+<section class="scene dark pin" data-pin="growth" data-len="2" data-steps="4" data-title="من العلاقة إلى المشروع">
+  <div class="stage"><div class="wrap">
+    <div class="eyebrow">كيف ننمو؟</div>
+    <h2 class="title">نبدأ بالعلاقة الإنسانية، ومنها تنشأ المشروعات</h2>
+    <div class="path" id="growth">
+      <svg><path id="gPathBase" stroke="#2A333F" stroke-width="1.5" fill="none"/><path id="gPath" stroke="#B9933A" stroke-width="2.5" fill="none"/></svg>
+      <div class="pnode" data-s="0"><div class="dm"></div><h4>العلاقة الإنسانية</h4><p>تعارف بين العقول والقدرات</p></div>
+      <div class="pnode" data-s="1"><div class="dm"></div><h4>الثقة</h4><p>تنشأ من المعرفة المتبادلة</p></div>
+      <div class="pnode" data-s="2"><div class="dm"></div><h4>التعاون</h4><p>تتكامل فيه القدرات والمصالح</p></div>
+      <div class="pnode" data-s="3"><div class="dm"></div><h4>الشراكات والمشروعات</h4><p>حلول حقيقية تدفع السوق إلى الأمام</p></div>
+    </div>
+  </div></div>
+</section>
+
+<!-- لقاؤنا اليوم -->
+<section class="scene" data-title="لقاؤنا اليوم">
+  <div class="wrap">
+    <div class="eyebrow rv">لقاؤنا اليوم</div>
+    <h2 class="title rv" style="--i:1">أربع فقرات في لقاء واحد</h2>
+    <div class="agenda rv fade" style="--i:2">
+      <span class="here">أنتم هنا</span>
+      <div class="ag" style="--i:0"><b>١</b><h4>التعريف بالمجتمع</h4><p>لماذا نجتمع، وما مجتمع إذكاء.</p></div>
+      <div class="ag" style="--i:1"><b>٢</b><h4>العرض الرئيس</h4><p>مستقبل المهنة القانونية في عصر الذكاء الاصطناعي.</p></div>
+      <div class="ag" style="--i:2"><b>٣</b><h4>التعارف</h4><p>من أنت؟ وما الذي تبحث عنه؟</p></div>
+      <div class="ag" style="--i:3"><b>٤</b><h4>النشاط التطبيقي</h4><p>احتياج واحد، وفريق واحد، وفكرة مشروع.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- الخيط -->
+<section class="scene" data-title="الخيط الذي يجمع اللقاء">
+  <div class="wrap">
+    <div class="eyebrow rv">الخيط الذي يجمع اللقاء</div>
+    <h2 class="title rv" style="--i:1">هذا الخيط الذهبي هو مسار اللقاء كله</h2>
+    <p class="lead rv" style="--i:2">تابِعه: كل محطة يبلغها تضيء.</p>
+    <div class="tlist">
+      <div class="it tn rv"><h4>سوق جديد يحتاج إلى الوعي</h4></div>
+      <div class="it tn rv"><h4>مجتمع يجمع العقول والقدرات والمصالح</h4></div>
+      <div class="it tn rv"><h4>تأمّل مستقبل المهنة القانونية</h4></div>
+      <div class="it tn rv"><h4>اكتشاف الاحتياجات والفرص</h4></div>
+      <div class="it tn rv"><h4 class="gold">تعاون ومشروعات وحلول حقيقية</h4></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ الجزء الثاني ══════════════ -->
+<section class="scene dark" data-auto id="p2" data-title="الجزء الثاني: العرض الرئيس" data-part="العرض الرئيس">
+  <div class="wrap">
+    <div class="bignum rv">٢</div>
+    <div class="eyebrow rv" style="--i:1;margin-top:3vh">العرض الرئيس</div>
+    <h2 class="rv" style="--i:2;font-size:var(--fs-sec);max-width:16ch">مستقبل المهنة القانونية في عصر الذكاء الاصطناعي</h2>
+  </div>
+</section>
+
+<!-- السفر في الزمن -->
+<section class="scene dark pin" data-pin="time" data-len="2.4" data-steps="3" data-title="نبدأ من المستقبل">
+  <div class="stage"><div class="wrap">
+    <div class="eyebrow">مدخل العرض</div>
+    <div class="yrow"><div class="year" id="year">٢٠٢٦</div><div class="ydelta" id="ydelta">اليوم</div></div>
+    <div class="axis" id="axis"><div class="ln"></div><div class="fill"></div><div class="mk"></div>
+      <span class="lab" style="right:0">الماضي: النص، والسابقة، والتجربة</span><span class="lab" style="left:0">المستقبل</span></div>
+    <div class="tt-lines">
+      <div class="tt-line">اعتدنا في العمل القانوني أن نبدأ من الماضي؛ نرجع إلى النصوص والسوابق لنفهم الحاضر.</div>
+      <div class="tt-line">والذكاء الاصطناعي يدعونا اليوم إلى أن <span class="gold">نبدأ من المستقبل.</span></div>
+      <div class="tt-line">كيف ستكون المهنة القانونية <span class="gold">بعد عشر سنوات؟</span> وكيف نستعد لها اليوم؟</div>
+    </div>
+  </div></div>
+</section>
+
+<!-- الأسئلة الثلاثة والرسم -->
+<section class="scene" data-title="ثلاثة أسئلة وفكرة جامعة">
+  <div class="wrap">
+    <div class="eyebrow rv">في كل مسار</div>
+    <h2 class="title rv" style="--i:1">ثلاثة أسئلة نطرحها، وفكرة واحدة تجمعها</h2>
+    <div class="qwrap">
+      <div class="q3">
+        <div class="it tn rv"><b>١</b><div><h4>ما الذي سيبقى؟</h4><p>الأعمال التي تقوم على الحكم والمسؤولية والثقة.</p></div></div>
+        <div class="it tn rv"><b>٢</b><div><h4>ما الذي سيتغيّر جذريًا؟</h4><p>الأعمال المتكررة التي يمكن وصفها بقواعد وبيانات.</p></div></div>
+        <div class="it tn rv"><b>٣</b><div><h4>ما الأدوار التي ستنشأ؟</h4><p>وظائف وخدمات لم تكن موجودة، وفيها الفرص.</p></div></div>
+        <p class="muted rv" style="margin-top:1vh">والغاية ليست التنبؤ، بل اكتشاف الاحتياجات التي يولّدها التحوّل.</p>
+      </div>
+      <div class="chart rv" style="--i:2" id="chartBox" data-enter="chartRun">
+        <div class="eyebrow" style="margin-bottom:.4em">الفكرة الجامعة</div>
+        <h4>النص يرخص، والحكم يغلو</h4>
+        <svg viewBox="0 0 600 270" id="chartSvg">
+          <g id="cGrid"></g>
+          <path id="cCost" fill="none" stroke="#5F6672" stroke-width="2.5"/>
+          <path id="cVal" fill="none" stroke="#B9933A" stroke-width="3"/>
+          <line id="cCur" y1="10" y2="235" stroke="#232830" stroke-width="1" stroke-dasharray="3 4"/>
+          <circle id="cDotC" r="6" fill="#5F6672"/><rect id="cDotV" width="12" height="12" fill="#B9933A" transform="rotate(45)"/>
+          <text x="590" y="262" font-size="13" fill="#5F6672" text-anchor="start" direction="rtl">٢٠٢٦</text>
+          <text x="10" y="262" font-size="13" fill="#5F6672" text-anchor="end" direction="rtl">٢٠٣٦</text>
+        </svg>
+        <div class="readouts"><div class="ro"><b id="roC">١٠٠</b><span>كلفة إنتاج النص القانوني</span></div><div class="ro g"><b id="roV">١٠٠</b><span>قيمة التقدير والمسؤولية والثقة</span></div></div>
+        <div class="range"><span id="roY">٢٠٢٦</span><input type="range" id="cRange" min="0" max="100" value="0"><span>اسحب لتتحرك في الزمن</span></div>
+        <div class="note">رسم مفاهيمي يوضّح الاتجاه، والأرقام مؤشر نسبي (١٠٠ = اليوم) وليست بيانات مرصودة.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- المسارات الأربعة -->
+<section class="scene sand" data-title="أربعة مسارات">
+  <div class="wrap">
+    <div class="eyebrow rv">خريطة العرض</div>
+    <h2 class="title rv" style="--i:1">أربعة مسارات نستشرف مستقبلها</h2>
+    <div class="grid g4 tracks" style="margin-top:5vh">
+      <div class="card rv" style="--i:2" data-go="#t1"><div class="big">١</div><h4>القضاء والتقاضي</h4><p>كيف سيتغيّر طريق النزاع: من رفع الدعوى إلى صناعة الحكم؟</p></div>
+      <div class="card rv" style="--i:3" data-go="#t2"><div class="big">٢</div><h4>الإدارات القانونية</h4><p>كيف ستتغيّر إدارة العقود والامتثال والمخاطر داخل المؤسسات؟</p></div>
+      <div class="card rv" style="--i:4" data-go="#t3"><div class="big">٣</div><h4>التعلّم والتأهيل</h4><p>كيف سيتعلّم القانوني الصنعة، ويحدّث معرفته طوال حياته؟</p></div>
+      <div class="card rv" style="--i:5" data-go="#t4"><div class="big">٤</div><h4>الفرص الاستثمارية</h4><p>ما المنتجات والشركات التي ستنشأ من هذه التحوّلات؟</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── المسار ١: القضاء ─────────── -->
+<section class="scene dark" data-auto id="t1" data-title="١ · القضاء والتقاضي" data-part="القضاء والتقاضي">
+  <div class="wrap">
+    <div class="bignum rv">١</div>
+    <h2 class="rv" style="--i:1;font-size:var(--fs-sec);margin-top:3vh">القضاء والتقاضي</h2>
+    <p class="lead rv" style="--i:2">كيف سيغيّر الذكاء الاصطناعي إدارة الدعاوى، ودراسة القضايا، وصناعة القرار القضائي، وطريق المتقاضي إلى حقّه؟</p>
+    <div class="secline rv" style="--i:3"><i class="f"></i><i></i><i></i><i></i></div>
+  </div>
+</section>
+
+<section class="scene" data-title="ملف يصل مدروسًا">
+  <div class="wrap">
+    <div class="eyebrow rv">ما بدأ يتغيّر</div>
+    <h2 class="title rv" style="--i:1">الرقمنة أوجدت البيانات، والذكاء الاصطناعي سيجعلها مفهومة</h2>
+    <div class="court rv fade" id="court" data-enter="courtRun" data-leave="courtReset" style="--i:2">
+      <div class="cfile"><div class="hd"><span class="muted">ملف القضية</span><b><span id="cPages">٠</span> <small class="muted" style="font-size:.45em">صفحة</small></b></div><div class="pages" id="pagesEl"></div><div class="beam"></div></div>
+      <div class="arrow"><svg viewBox="0 0 46 20"><path d="M46 10H4M12 2 3 10l9 8" fill="none" stroke="#B9933A" stroke-width="2"/></svg></div>
+      <div class="brief">
+        <div class="muted" style="font-size:var(--fs-small)">يصل إلى القاضي من أول جلسة</div>
+        <div class="row"><b>الوقائع</b><div>عقد توريد بين منشأتين، وتأخّر في التسليم، ومطالبة بالتعويض.</div></div>
+        <div class="row"><b>نقاط النزاع</b><div>١. هل التأخير إخلال جوهري؟ <span class="pill">مُنكَر</span><br>٢. هل يُطبَّق الشرط الجزائي؟ <span class="pill g">محل نزاع</span><br>٣. مقدار الضرر <span class="pill ok">مُقَرّ جزئيًا</span></div></div>
+        <div class="row"><b>النصوص ذات الصلة</b><div>المواد المنظِّمة للالتزامات التعاقدية <span class="pill ok">منسوبة إلى مصدرها</span></div></div>
+        <div class="row"><b>سوابق مشابهة</b><div>أحكام في وقائع مماثلة، كلٌّ منها برابطه <span class="pill ok">قابلة للتحقق</span></div></div>
+        <div class="verdict"><b>الحكم</b><span class="muted" style="font-size:var(--fs-small)">يبقى للقاضي</span><span class="caret"></span></div>
+      </div>
+    </div>
+    <div class="note rv">محاكاة توضيحية لقضية افتراضية.</div>
+  </div>
+</section>
+
+<section class="scene" data-title="أربعة تحوّلات في التقاضي">
+  <div class="wrap">
+    <div class="eyebrow rv">بعد عشر سنوات</div>
+    <h2 class="title rv" style="--i:1">أربعة تحوّلات في طريق النزاع</h2>
+    <div class="tlist">
+      <div class="it tn rv"><h4>ملف يصل مدروسًا</h4><p>ملخص الوقائع، ونقاط النزاع، وما أُقرّ وما أُنكر، والسوابق المشابهة، أمام القاضي من أول جلسة.</p></div>
+      <div class="it tn rv"><h4>إجراءات تُؤتمت</h4><p>التحقق من اكتمال الصحيفة، والاختصاص، والجدولة، ومسودات القرارات الإجرائية.</p></div>
+      <div class="it tn rv"><h4>تقاضٍ قابل للتوقّع</h4><p>يعرف المتقاضي قوة موقفه ومدته وتكلفته قبل أن يرفع دعواه، فيتّسع باب الصلح والتسوية المبكرة.</p></div>
+      <div class="it tn rv"><h4>اتساق قابل للقياس</h4><p>تحليل الأحكام بالجملة يكشف التباين في القضايا المتماثلة، ويدعم مبادئ أوضح.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="scene" data-title="القضاء: ما يبقى وما يتغيّر">
+  <div class="wrap">
+    <div class="eyebrow rv">ما يبقى وما يتغيّر</div>
+    <h2 class="title rv" style="--i:1">الحكم يبقى للقاضي، وكل ما حوله يتغيّر</h2>
+    <div class="sorter rv fade" data-sorter style="--i:2"
+      data-change="دراسة الملف وتلخيصه|الإجراءات المتكررة والجدولة|تقدير المآل والمدة والتكلفة|مساعد يرشد المتقاضي غير الممثَّل بمحامٍ|نزاعات جديدة: الأدلة المزيّفة ومسؤولية الأنظمة الذكية"
+      data-stay="الحكم والمسؤولية عنه|تقويم البيّنات ووزن المصالح|الاجتهاد حيث لا نص"
+      data-labels="ما يتغيّر جذريًا|الإعداد والإجراء والتوقّع|ما يبقى|الولاية والتقدير"></div>
+    <div class="note rv">وكل ما تنتجه الآلة ويدخل القضاء يجب أن يكون قابلًا للتحقق ومنسوبًا إلى مصدره.</div>
+  </div>
+</section>
+
+<section class="scene sand" data-title="احتياجات مستقبل التقاضي">
+  <div class="wrap">
+    <div class="eyebrow rv">الاحتياجات والفرص</div>
+    <h2 class="title rv" style="--i:1">احتياجات يولّدها مستقبل التقاضي</h2>
+    <div class="grid g3" style="margin-top:5vh">
+      <div class="card rv" style="--i:2"><div class="num">٠١</div><h4>تلخيص ملفات القضايا</h4><p>استخراج الوقائع ونقاط النزاع، مبني للعربية وللأنظمة المحلية.</p></div>
+      <div class="card rv" style="--i:3"><div class="num">٠٢</div><h4>تقدير المآل</h4><p>توقّع النتيجة والمدة والتكلفة للمتقاضين والمحامين والممولين.</p></div>
+      <div class="card rv" style="--i:4"><div class="num">٠٣</div><h4>التسوية المبكرة</h4><p>منصات صلح يدعمها التحليل قبل أن يصل النزاع إلى المحكمة.</p></div>
+      <div class="card rv" style="--i:5"><div class="num">٠٤</div><h4>قواعد أحكام منظّمة</h4><p>أحكام مصنّفة بالمسائل والمبادئ، لا بالكلمات.</p></div>
+      <div class="card rv" style="--i:6"><div class="num">٠٥</div><h4>فحص الأدلة الرقمية</h4><p>كشف التزييف في الصوت والصورة والمستند.</p></div>
+      <div class="card rv" style="--i:7"><div class="num">٠٦</div><h4>أدوار جديدة</h4><p>باحث قضائي معزَّز، ومدقّق أنظمة قضائية، ومهندس معرفة قضائية.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="scene dark ask" data-title="سؤال للقاعة: مآل الدعوى">
+  <div class="wrap">
+    <div class="eyebrow rv">سؤال للقاعة</div>
+    <p class="q rv fade" data-type>لو عرفت مآل دعواك قبل رفعها، هل سترفعها؟</p>
+    <p class="sub">وما الذي سيتغيّر في سوق المحاماة لو صار هذا متاحًا للجميع؟</p>
+    <div class="poll rv" style="--i:2" data-poll="court" data-opts="نعم، سأرفعها على أي حال|لا، سأبحث عن صلح أو تسوية|يعتمد على الكلفة والمدة"></div>
+  </div>
+</section>
+
+<!-- ─────────── المسار ٢: الإدارات القانونية ─────────── -->
+<section class="scene dark" data-auto id="t2" data-title="٢ · الإدارات القانونية" data-part="الإدارات القانونية">
+  <div class="wrap">
+    <div class="bignum rv">٢</div>
+    <h2 class="rv" style="--i:1;font-size:var(--fs-sec);margin-top:3vh">الإدارات القانونية</h2>
+    <p class="lead rv" style="--i:2">كيف ستتغيّر إدارة العقود والامتثال والمخاطر والمنازعات داخل المؤسسات؟ وكيف سيتغيّر موقع الإدارة القانونية فيها؟</p>
+    <div class="secline rv" style="--i:3"><i class="f"></i><i class="f"></i><i></i><i></i></div>
+  </div>
+</section>
+
+<section class="scene" data-title="من حارس البوابة إلى مهندس الأنظمة">
+  <div class="wrap">
+    <div class="eyebrow rv">طلبات تتزايد، وفريق لا يتضاعف بالقدر نفسه</div>
+    <h2 class="title rv" style="--i:1">من حارس البوابة إلى مهندس الأنظمة</h2>
+    <div class="flow rv fade" style="--i:2" id="flowBox" data-enter="flowStart" data-leave="flowStop">
+      <canvas id="flowCv"></canvas>
+      <div class="flowbar">
+        <div class="seg" id="flowSeg"><button data-m="today">اليوم: كل عقد يمرّ بالمحامي</button><button data-m="future">بعد عشر سنوات: المحامي للاستثناء</button></div>
+        <div class="fm"><div><b id="fIn">٠</b><span>عقدًا ورد</span></div><div class="g"><b id="fAuto">٠</b><span>رُوجع آليًا وفق الدليل</span></div><div><b id="fLaw">٠</b><span>استثناء أنجزه المحامي</span></div><div class="r"><b id="fQ">٠</b><span>في الانتظار</span></div></div>
+      </div>
+    </div>
+    <div class="note rv">محاكاة توضيحية: المحامي يُنجز بالوتيرة نفسها في الحالتين، والفرق في ما يصل إليه.</div>
+  </div>
+</section>
+
+<section class="scene" data-title="أربعة تحوّلات في الإدارة القانونية">
+  <div class="wrap">
+    <div class="eyebrow rv">بعد عشر سنوات</div>
+    <h2 class="title rv" style="--i:1">الإدارة القانونية تبني الأنظمة التي تُراجَع بها الأعمال</h2>
+    <div class="tlist">
+      <div class="it tn rv"><h4>العقد النمطي يُراجَع آليًا</h4><p>وفق دليل التفاوض المعتمد، ولا يصل إلى المحامي إلا الاستثناء.</p></div>
+      <div class="it tn rv"><h4>العقود بيانات حيّة</h4><p>كل التزام وموعد وحدّ للمسؤولية مستخرج ومتابَع، والتنبيه يسبق الإخلال.</p></div>
+      <div class="it tn rv"><h4>امتثال مستمر لا دوري</h4><p>يُرصد التنظيم الجديد ويُربط بالسياسات والعقود والإجراءات المتأثرة.</p></div>
+      <div class="it tn rv"><h4>خدمة ذاتية للموظفين</h4><p>إجابات أولية ونماذج جاهزة، في حدود ترسمها الإدارة القانونية.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="scene" data-title="الإدارات: ما يبقى وما يتغيّر">
+  <div class="wrap">
+    <div class="eyebrow rv">ما يبقى وما يتغيّر</div>
+    <h2 class="title rv" style="--i:1">يُؤتمت المتكرر، ويبقى قرار المخاطرة</h2>
+    <div class="sorter rv fade" data-sorter style="--i:2"
+      data-change="مراجعة العقود النمطية|الإجابة عن الأسئلة المتكررة|رصد التنظيمات وربطها بالمؤسسة|قياس الأداء بالمؤشرات|قرار التسوية مبني على تقدير التعرّض المالي"
+      data-stay="كم من المخاطرة تحتمل المؤسسة|التفاوض في الصفقات الكبرى|الثقة مع الإدارة التنفيذية والمجلس|المسؤولية النظامية"
+      data-labels="ما يتغيّر جذريًا|إدارة تُقاس وتُدار بالبيانات|ما يبقى|الحكم والعلاقة"></div>
+  </div>
+</section>
+
+<section class="scene sand" data-title="احتياجات مستقبل الإدارات القانونية">
+  <div class="wrap">
+    <div class="eyebrow rv">الاحتياجات والفرص</div>
+    <h2 class="title rv" style="--i:1">احتياجات يولّدها مستقبل الإدارات القانونية</h2>
+    <div class="grid g3" style="margin-top:5vh">
+      <div class="card rv" style="--i:2"><div class="num">٠١</div><h4>إدارة دورة حياة العقود</h4><p>بالعربية، وتفهم الأنظمة المحلية.</p></div>
+      <div class="card rv" style="--i:3"><div class="num">٠٢</div><h4>مراجعة العقود آليًا</h4><p>وفق دليل التفاوض الخاص بكل مؤسسة.</p></div>
+      <div class="card rv" style="--i:4"><div class="num">٠٣</div><h4>رصد التنظيمات</h4><p>تحويل كل تحديث نظامي إلى إجراء داخلي.</p></div>
+      <div class="card rv" style="--i:5"><div class="num">٠٤</div><h4>مساعد قانوني داخلي</h4><p>مبني على سياسات المؤسسة ونماذجها.</p></div>
+      <div class="card rv" style="--i:6"><div class="num">٠٥</div><h4>تصميم العمليات القانونية</h4><p>استشارات تحوّل للإدارات القانونية.</p></div>
+      <div class="card rv" style="--i:7"><div class="num">٠٦</div><h4>أدوار جديدة</h4><p>مسؤول العمليات القانونية، ومهندس المعرفة، ومسؤول حوكمة الذكاء الاصطناعي.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="scene dark ask" data-title="سؤال للقاعة: نصف الوقت">
+  <div class="wrap">
+    <div class="eyebrow rv">سؤال للقاعة</div>
+    <p class="q rv fade" data-type>لو تحرّر نصف وقت إدارتك القانونية غدًا، أين ستستثمره؟</p>
+    <p class="sub">وما أول عمل متكرر تتمنّى أن يختفي؟</p>
+    <div class="poll rv" style="--i:2" data-poll="dept" data-opts="الاستراتيجية ودعم قرارات الإدارة|الصفقات والتفاوض|بناء الأنظمة والنماذج والأدلة|تطوير الفريق وتأهيله"></div>
+  </div>
+</section>
+
+<!-- ─────────── المسار ٣: التعلّم ─────────── -->
+<section class="scene dark" data-auto id="t3" data-title="٣ · التعلّم والتأهيل" data-part="التعلّم والتأهيل">
+  <div class="wrap">
+    <div class="bignum rv">٣</div>
+    <h2 class="rv" style="--i:1;font-size:var(--fs-sec);margin-top:3vh">التعلّم والتأهيل</h2>
+    <p class="lead rv" style="--i:2">كيف ستتغيّر دراسة القانون، وتدريب القانونيين، والمهارات التي يحتاجون إليها؟</p>
+    <div class="secline rv" style="--i:3"><i class="f"></i><i class="f"></i><i class="f"></i><i></i></div>
+  </div>
+</section>
+
+<section class="scene pin" data-pin="ladder" data-len="2.4" data-steps="3" data-title="سلّم التدريب">
+  <div class="stage"><div class="wrap">
+    <div class="eyebrow">ما بدأ يتغيّر</div>
+    <div class="ladder-wrap">
+      <div class="lstage" id="lstage">
+        <div><h3>هكذا كان المبتدئ يتعلّم الصنعة</h3><p>درجة بعد درجة: يبدأ بالبحث والتلخيص والمسودات الأولى، ثم يصعد إلى المراجعة والمرافعة والحكم المهني.</p></div>
+        <div><h3>والدرجات الأولى تؤديها الأدوات اليوم</h3><p>فإذا لم يمرّ بها المبتدئ، فكيف سيصعد؟ <span class="gold">سلّم التدريب التقليدي مهدَّد.</span></p></div>
+        <div><h3>فيُعاد بناء السلّم بدرجات جديدة</h3><p>المحاكاة، والتحقق من مخرجات الآلة، والتدريب الموجَّه: يبدأ المبتدئ من الحكم لا من النسخ.</p></div>
+      </div>
+      <div class="ladder" id="ladder"></div>
+    </div>
+  </div></div>
+</section>
+
+<section class="scene" data-title="تمرين: أين الخطأ؟">
+  <div class="wrap">
+    <div class="eyebrow rv">من الحفظ إلى الحكم</div>
+    <h2 class="title rv" style="--i:1">المهارة الجديدة: أن تكتشف خطأ الآلة</h2>
+    <p class="lead rv" style="--i:2">هذه إجابة من مساعد ذكي. انقر الجملة التي لا ينبغي أن تثق بها.</p>
+    <div class="exam rv" style="--i:3">
+      <div class="bot"><i></i>إجابة المساعد الذكي</div>
+      <p class="ans" id="ans"><span>الأصل في العقود أنها ملزمة لأطرافها بما اتفقوا عليه.</span> <span>ويحق للطرف المتضرر أن يطالب بالتعويض إذا أخلّ الطرف الآخر بالتزامه.</span> <span data-bad>وقد قررت ذلك المحكمة في الحكم رقم ٤٥٨٢٧/ق/٣ لعام ١٤٣٩هـ بنصّه الحرفي.</span> <span>ويُرجع في التفاصيل إلى نص العقد والنظام المنطبق.</span></p>
+      <div class="exres" id="exres"></div>
+    </div>
+    <div class="note rv">الحكم المذكور في التمرين مختلَق عمدًا.</div>
+  </div>
+</section>
+
+<section class="scene" data-title="التعلّم: ما يبقى وما يتغيّر">
+  <div class="wrap">
+    <div class="eyebrow rv">ما يبقى وما يتغيّر</div>
+    <h2 class="title rv" style="--i:1">الأصول تزداد قيمة، والوسائل تتغيّر</h2>
+    <div class="sorter rv fade" data-sorter style="--i:2"
+      data-change="التقويم يقيس المهارة والحكم لا الاستحضار|التدريب العملي يبدأ من السنة الأولى بالمحاكاة|مدرّس آلي يكيّف الشرح على مستوى الطالب|شهادات قصيرة متجددة طوال الحياة المهنية|مهارات جديدة: التقنية والبيانات وتصميم الخدمات"
+      data-stay="التكييف والاستدلال وبناء الحجة|فهم مقاصد النصوص|الأخلاقيات المهنية|الإقناع والتفاوض والإصغاء"
+      data-labels="ما يتغيّر جذريًا|طريقة التعلّم ومحتواه|ما يبقى|أصول التفكير القانوني"></div>
+    <div class="note rv">من لا يملك الأصول لا يستطيع أن يحكم على جودة ما تنتجه الآلة.</div>
+  </div>
+</section>
+
+<section class="scene sand" data-title="احتياجات مستقبل التعلّم">
+  <div class="wrap">
+    <div class="eyebrow rv">الاحتياجات والفرص</div>
+    <h2 class="title rv" style="--i:1">احتياجات يولّدها مستقبل التعلّم</h2>
+    <div class="grid g3" style="margin-top:5vh">
+      <div class="card rv" style="--i:2"><div class="num">٠١</div><h4>منصات التدريب بالمحاكاة</h4><p>مرافعة، وصياغة، وتفاوض، مع تقويم فوري.</p></div>
+      <div class="card rv" style="--i:3"><div class="num">٠٢</div><h4>مدرّس قانوني ذكي</h4><p>مبني على الأنظمة المحلية ومناهج الجامعات.</p></div>
+      <div class="card rv" style="--i:4"><div class="num">٠٣</div><h4>برامج تأهيل مزدوجة</h4><p>التقنية للقانونيين، والقانون للتقنيين.</p></div>
+      <div class="card rv" style="--i:5"><div class="num">٠٤</div><h4>محتوى تحديث مستمر</h4><p>كل تعديل نظامي يتحوّل إلى درس قصير.</p></div>
+      <div class="card rv" style="--i:6"><div class="num">٠٥</div><h4>تقويم وشهادات</h4><p>أدوات تقيس المهارة لا الحفظ.</p></div>
+      <div class="card rv" style="--i:7"><div class="num">٠٦</div><h4>أدوار جديدة</h4><p>مصمّم التعلّم القانوني، ومدرّب الكفاءة التقنية، والقانوني المزدوج التأهيل.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="scene dark ask" data-title="سؤال للقاعة: تعليم المبتدئ">
+  <div class="wrap">
+    <div class="eyebrow rv">سؤال للقاعة</div>
+    <p class="q rv fade" data-type>إذا كتبت الآلة المسودة الأولى، فكيف يتعلّم المبتدئ الصنعة؟</p>
+    <p class="sub">ومن المسؤول عن تعليمه؟</p>
+    <div class="poll rv" style="--i:2" data-poll="learn" data-opts="الجامعة|المكتب أو جهة العمل|المتدرّب نفسه|جميعهم معًا"></div>
+  </div>
+</section>
+
+<!-- ─────────── المسار ٤: الفرص الاستثمارية ─────────── -->
+<section class="scene dark" data-auto id="t4" data-title="٤ · الفرص الاستثمارية" data-part="الفرص الاستثمارية">
+  <div class="wrap">
+    <div class="bignum rv">٤</div>
+    <h2 class="rv" style="--i:1;font-size:var(--fs-sec);margin-top:3vh">الفرص الاستثمارية</h2>
+    <p class="lead rv" style="--i:2">ما المنتجات والخدمات والشركات التي ستنشأ من هذه التحوّلات؟ وأين الفرصة لمن يستثمر أو يؤسس اليوم؟</p>
+    <div class="secline rv" style="--i:3"><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i></div>
+  </div>
+</section>
+
+<section class="scene" data-title="الفجوة في السوق العربي">
+  <div class="wrap">
+    <div class="eyebrow rv">ما بدأ يتغيّر</div>
+    <h2 class="title rv" style="--i:1">الفجوة في السوق العربي هي الفرصة</h2>
+    <div class="tlist">
+      <div class="it tn rv"><h4>الحلول العالمية لا تكفي</h4><p>لا تفهم العربية القانونية بعمقها، ولا الأنظمة المحلية، ولا متطلبات حفظ البيانات داخل البلد.</p></div>
+      <div class="it tn rv"><h4>الحاجة موجودة، والبنية الرقمية متقدمة</h4><p>والتحوّل الوطني يدفع المؤسسات نحو التبنّي.</p></div>
+      <div class="it tn rv"><h4>والثقة هي العملة</h4><p>النموذج اللغوي متاح للجميع؛ أما المعرفة المتخصصة وفهم سير العمل القانوني فلا يُنسخان بسهولة.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="scene" data-title="من البرمجيات إلى النتائج">
+  <div class="wrap">
+    <div class="eyebrow rv">ما يتغيّر جذريًا</div>
+    <h2 class="title rv" style="--i:1">من بيع البرمجيات إلى بيع النتائج</h2>
+    <div class="flipwrap">
+      <div class="flip rv" style="--i:2" id="flip" data-enter="flipOn" data-leave="flipOff">
+        <div class="in">
+          <div class="fc front"><small>اليوم يُباع</small><h3>برنامج لمراجعة العقود</h3><small>انقر لتقلب البطاقة</small></div>
+          <div class="fc back"><small>غدًا يُباع</small><h3>عقد <em>مُراجَع</em> خلال ساعة</h3><small>جزء من الخدمة القانونية نفسها يصير منتجًا</small></div>
+        </div>
+      </div>
+      <div class="prices rv" style="--i:3">
+        <small>ومعه يتغيّر التسعير</small>
+        <div class="price old">الساعة المحتسبة</div>
+        <div class="price nw" style="--i:0">السعر الثابت</div>
+        <div class="price nw" style="--i:1">الاشتراك</div>
+        <div class="price nw" style="--i:2">الدفع مقابل النتيجة</div>
+        <p class="muted" style="margin-top:auto;font-size:var(--fs-small)">ويولد طلب لم يكن موجودًا: أفراد ومنشآت صغيرة لم تكن تصل إلى المحامي بسبب التكلفة.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="scene sand" data-title="ست خانات للفرص">
+  <div class="wrap">
+    <div class="eyebrow rv">أين الفرص؟</div>
+    <h2 class="title rv" style="--i:1">ست خانات، أساسها البنية التحتية للمعرفة</h2>
+    <div class="map">
+      <div class="orbit rv fade" id="orbit" data-enter="mapStart" data-leave="mapStop"><svg id="orbitSvg"></svg></div>
+      <div class="mapdetail" id="mapDetail"></div>
+    </div>
+  </div>
+</section>
+
+<section class="scene dark pin" data-pin="assemble" data-len="2" data-steps="2" data-title="أربعة مكوّنات لمشروع ناجح">
+  <div class="stage"><div class="wrap">
+    <div class="eyebrow">ما الذي يصنع مشروعًا ناجحًا؟</div>
+    <h2 class="title">أربعة مكوّنات، إذا اجتمعت قام المشروع</h2>
+    <div class="assemble" id="assemble">
+      <div class="ing" data-k="0"><div><h4>فريق مزدوج</h4><p>قانوني يعرف المشكلة، وتقني يعرف الحل</p></div></div>
+      <div class="ing" data-k="1"><div><h4>احتياج حقيقي</h4><p>مشكلة مؤلمة قائمة، لا تقنية تبحث عن مشكلة</p></div></div>
+      <div class="ing" data-k="2"><div><h4>معرفة متخصصة</h4><p>بيانات وخبرة يصعب على المنافس بلوغها</p></div></div>
+      <div class="ing" data-k="3"><div><h4>أول عميل</h4><p>جهة تتبنّى الحل وتشارك في تطويره</p></div></div>
+      <div class="core-dm" id="coreDm"></div>
+      <div class="core-cap" id="coreCap">وهذه الأربعة يجمعها <em>مجتمع إذكاء</em> في مكان واحد</div>
+    </div>
+  </div></div>
+</section>
+
+<section class="scene dark ask" data-title="سؤال للقاعة: مشكلتك">
+  <div class="wrap">
+    <div class="eyebrow rv">سؤال للقاعة</div>
+    <p class="q rv fade" data-type>لو كان معك فريق صغير وستة أشهر، أي مشكلة قانونية ستحلّها؟</p>
+    <p class="sub">اكتبوها هنا، فتصير مادة النشاط التطبيقي.</p>
+    <div class="wallin rv" style="--i:2"><input id="wallIn" placeholder="اكتب المشكلة ثم اضغط Enter" maxlength="90"><button id="wallAdd">أضِف</button></div>
+    <div class="wall" id="wall"></div>
+  </div>
+</section>
+
+<!-- الختام -->
+<section class="scene dark pin" data-pin="quote2" data-len="1.6" data-steps="2" data-title="الخيط الجامع">
+  <div class="stage"><div class="wrap">
+    <span class="qmark">«</span>
+    <p class="wq" id="quote2" data-keys="سيُؤتمت|ستزداد قيمته|فرصة">ما يتكرر سيُؤتمت، وما يحتاج إلى حكم ومسؤولية وثقة ستزداد قيمته. وفي كل تحوّل احتياج، وفي كل احتياج فرصة.</p>
+    <div class="who">◆ الخيط الجامع للعرض</div>
+  </div></div>
+</section>
+
+<section class="scene dark finale" data-title="الختام">
+  <div class="wrap">
+    <svg class="lockup rv fade" viewBox="18 -976 3701 1307" aria-label="إذكاء"><path d="__D_NAME__" fill="#EAE5D8"/><path d="__D_DOTS__" fill="#EAE5D8"/><path d="__D_NAME_GOLD__" fill="#B9933A"/><path class="dm" d="__D_DIAMOND__" fill="#B9933A"/></svg>
+    <div class="eyebrow rv" style="--i:1">من المستقبل إلى الطاولة</div>
+    <h2 class="rv" style="--i:2;font-size:var(--fs-sec)">المشروع لا يقوم بشخص واحد</h2>
+    <div class="tlist">
+      <div class="it tn rv"><h4>تعارف</h4><p>من أنت؟ وما الذي تبحث عنه؟</p></div>
+      <div class="it tn rv"><h4>تكامل</h4><p>من يكمل قدراتك، أو يحتاج إليها؟</p></div>
+      <div class="it tn rv"><h4 class="gold">نشاط تطبيقي</h4><p>احتياج واحد، وفريق واحد، وفكرة مشروع.</p></div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<div id="menu"><h3>الفهرس</h3><ol id="menuList"></ol>
+  <div class="keys"><span><kbd>←</kbd> <kbd>مسافة</kbd> <kbd>PgDn</kbd> التالي</span><span><kbd>→</kbd> <kbd>PgUp</kbd> السابق</span><span><kbd>F</kbd> ملء الشاشة</span><span><kbd>M</kbd> الفهرس</span><span><kbd>Home</kbd> البداية</span></div>
+</div>
+
+<script>
+(()=>{
+'use strict';
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const AR=v=>String(v).replace(/\d/g,d=>'٠١٢٣٤٥٦٧٨٩'[d]);
+const clamp=(v,a=0,b=1)=>Math.min(b,Math.max(a,v));
+const lerp=(a,b,t)=>a+(b-a)*t;
+const ease=t=>1-Math.pow(1-t,3);
+const smooth=t=>t*t*(3-2*t);
+const vh=()=>innerHeight;
+let tipF=0.62;const TIP0=0.62;const tipY=()=>vh()*tipF;
+function setTip(f){tipF=f;document.documentElement.style.setProperty('--tip',(f*100).toFixed(3)+'vh')}
+const ENTER={},LEAVE={},PIN={};
+function rng(seed){let s=seed>>>0;return()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296}}
+function fitCanvas(cv){const d=Math.min(devicePixelRatio||1,2),r=cv.getBoundingClientRect();const w=Math.max(1,r.width),h=Math.max(1,r.height);if(cv.width!==Math.round(w*d)||cv.height!==Math.round(h*d)){cv.width=Math.round(w*d);cv.height=Math.round(h*d)}const c=cv.getContext('2d');c.setTransform(d,0,0,d,0,0);return{c,w,h}}
+function dia(c,x,y,s){c.beginPath();c.moveTo(x,y-s);c.lineTo(x+s,y);c.lineTo(x,y+s);c.lineTo(x-s,y);c.closePath()}
+function countTo(el,to,{from=0,dur=1400,fmt=v=>AR(Math.round(v))}={}){const t0=performance.now();cancelAnimationFrame(el._raf);const f=now=>{const t=clamp((now-t0)/dur);el.textContent=fmt(lerp(from,to,ease(t)));if(t<1)el._raf=requestAnimationFrame(f)};el._raf=requestAnimationFrame(f)}
+function visible(el){const r=el.getBoundingClientRect();return r.bottom>0&&r.top<vh()}
+
+/* ═══ تقسيم العنوان كلمات ═══ */
+$$('[data-words]').forEach(el=>{el.innerHTML=el.textContent.trim().split(/\s+/).map((w,i)=>`<span class="w" style="--i:${i}">${w}</span>`).join(' ')});
+$$('.wq').forEach(el=>{const keys=(el.dataset.keys||'').split('|').filter(Boolean);const words=el.textContent.trim().split(/\s+/);el.innerHTML=words.map(w=>`<span class="w">${w}</span>`).join(' ');const spans=$$('.w',el);keys.forEach(k=>{const kw=k.split(/\s+/);for(let i=0;i<=words.length-kw.length;i++){if(kw.every((x,j)=>words[i+j].replace(/[،.]/g,'')===x.replace(/[،.]/g,''))){for(let j=0;j<kw.length;j++)spans[i+j].classList.add('k')}}})});
+
+/* ═══ عقد الخيط: محطات على الهامش ═══ */
+const nodesLayer=$('#nodes');let tnodes=[];
+function placeNodes(){nodesLayer.innerHTML='';tnodes=[];const sy=scrollY,W=document.documentElement.clientWidth;
+  const gut=parseFloat(getComputedStyle($('#thread')).right)||30;
+  $$('.tn').forEach(el=>{const r=el.getBoundingClientRect();const y=r.top+sy+Math.min(r.height/2,24);const dark=!!el.closest('.dark');
+    const n=document.createElement('div');n.className='gnode'+(dark?' dk':'');n.style.top=y+'px';
+    const b=document.createElement('div');b.className='gbranch';b.style.top=y+'px';const w=Math.max(0,(W-r.right)-gut-14);b.style.width=w+'px';b.style.marginRight='10px';
+    nodesLayer.append(b,n);tnodes.push({el,n,b})});}
+
+/* ═══ الظهور عند بلوغ الخيط ═══ */
+let revs=[];
+function collect(){revs=$$('.rv,.tn,[data-enter]');revs.forEach(el=>el._auto=el.closest('[data-auto]'))}
+function tick(){const T=tipY();const atEnd=scrollY+vh()>=document.documentElement.scrollHeight-4;
+  for(const el of revs){const r=el.getBoundingClientRect();const off=el.dataset.off?+el.dataset.off:30;const ref=el._auto?el._auto.getBoundingClientRect():r;
+    const passed=ref.top+off<T||atEnd;const state=passed&&r.bottom>-vh()*1.5;
+    if(state!==el._on){el._on=state;el.classList.toggle('on',state);
+      if(state&&el.dataset.enter&&ENTER[el.dataset.enter])ENTER[el.dataset.enter](el);
+      if(!state&&el.dataset.leave&&LEAVE[el.dataset.leave])LEAVE[el.dataset.leave](el);
+      if(state&&el.dataset.type!==undefined)typeIt(el);
+      if(state&&el.matches('[data-sorter]'))sortTo(el,true);
+      if(!state&&el.matches('[data-sorter]'))sortTo(el,false);}}
+  for(const t of tnodes){const on=t.el._on;t.n.classList.toggle('on',!!on);t.b.classList.toggle('on',!!on)}
+  for(const s of pins){const r=s.el.getBoundingClientRect();const span=r.height-vh();const p=clamp(-r.top/Math.max(1,span));if(r.bottom>0&&r.top<vh()){if(Math.abs(p-(s.p??-1))>1e-4||!s.vis){s.p=p;PIN[s.name]&&PIN[s.name](p,s.el)}s.vis=true}else s.vis=false}
+  updateWhere();}
+let ticking=false;function req(){if(!ticking){ticking=true;requestAnimationFrame(()=>{ticking=false;tick()})}}
+
+/* ═══ مشاهد التثبيت ═══ */
+const pins=$$('[data-pin]').map(el=>{el.style.height=(100*(1+ +el.dataset.len))+'vh';return{el,name:el.dataset.pin}});
+
+/* ═══ الكتابة المتتابعة ═══ */
+function typeIt(el){if(!el._txt)el._txt=el.textContent.trim();const txt=el._txt;let i=0;clearInterval(el._ti);const sub=el.parentElement.querySelector('.sub');sub&&sub.classList.remove('on');
+  el.innerHTML='<span class="car"></span>';el._ti=setInterval(()=>{i+=1;el.innerHTML=txt.slice(0,i)+'<span class="car"></span>';if(i>=txt.length){clearInterval(el._ti);sub&&sub.classList.add('on')}},38)}
+
+/* ═══ الغلاف: حقل المعيّنات ═══ */
+(function(){const cv=$('#heroField');let mx=-999,my=-999,t0=performance.now();
+  cv.parentElement.addEventListener('pointermove',e=>{const r=cv.getBoundingClientRect();mx=e.clientX-r.left;my=e.clientY-r.top});
+  cv.parentElement.addEventListener('pointerleave',()=>{mx=my=-999});
+  function draw(now){if(visible(cv)){const {c,w,h}=fitCanvas(cv);c.clearRect(0,0,w,h);const sp=30,t=(now-t0)/1000;
+    const cx=w*0.24,cy=h*0.52;
+    for(let y=sp/2;y<h;y+=sp)for(let x=sp/2+((y/sp|0)%2)*sp/2;x<w;x+=sp){
+      const dm=Math.hypot(x-mx,y-my),dc=Math.hypot(x-cx,y-cy);
+      const wave=.5+.5*Math.sin(dc/46-t*1.3);
+      const near=clamp(1-dm/190);const core=clamp(1-dc/(Math.min(w,h)*0.4));
+      const g=Math.max(near,core*wave);
+      c.globalAlpha=0.17+0.75*g;c.fillStyle=g>0.12?'#B9933A':'#3A4452';dia(c,x,y,2.2+g*2.6);c.fill()}
+    c.globalAlpha=1}
+    requestAnimationFrame(draw)}requestAnimationFrame(draw)})();
+
+/* ═══ السوق المضيء ═══ */
+(function(){const cv=$('#marketField'),sec=cv.closest('[data-pin]');const R=rng(7);
+  const seeds=[];for(let i=0;i<11;i++)seeds.push({x:.18+R()*.74,y:.12+R()*.8,r:.1+R()*.08});
+  seeds.sort((a,b)=>a.x-b.x).reverse();
+  const user=[];let P=0;const lines=$$('.mk-line',sec);
+  sec.querySelector('.stage').addEventListener('click',e=>{const r=cv.getBoundingClientRect();user.push({x:(e.clientX-r.left)/r.width,y:(e.clientY-r.top)/r.height,r:.12,t:performance.now()})});
+  PIN.market=p=>{P=p;const k=Math.min(3,Math.floor(p*4));lines.forEach((l,i)=>l.classList.toggle('cur',i===k))};
+  let lastLit=-1,lastN=-1;
+  function draw(now){if(visible(cv)){const {c,w,h}=fitCanvas(cv);c.clearRect(0,0,w,h);const sp=26,D=Math.min(w,h)*1.25;
+    const nSeeds=P*seeds.length*1.15;const act=[];
+    seeds.forEach((s,i)=>{const g=clamp(nSeeds-i);if(g>0)act.push({x:s.x*w,y:s.y*h,r:s.r*D*(.25+.75*ease(g))*(1+P*.6),g})});
+    user.forEach(u=>{const g=clamp((now-u.t)/1400);act.push({x:u.x*w,y:u.y*h,r:u.r*D*ease(g)*(1+P*.4),g})});
+    let lit=0,tot=0;
+    for(let y=sp/2;y<h;y+=sp)for(let x=sp/2+((y/sp|0)%2)*sp/2;x<w;x+=sp){tot++;let L=0;
+      for(const a of act){const d=Math.hypot(x-a.x,y-a.y);L=Math.max(L,clamp(1-d/a.r))}
+      if(L>0.35)lit++;
+      c.globalAlpha=0.16+0.75*L;c.fillStyle=L>0.05?'#B9933A':'#3A4452';dia(c,x,y,2+L*3);c.fill()}
+    c.globalAlpha=1;
+    act.forEach(a=>{c.strokeStyle='rgba(185,147,58,.9)';c.lineWidth=1.5;dia(c,a.x,a.y,9);c.stroke();c.fillStyle='#B9933A';dia(c,a.x,a.y,4);c.fill();
+      const ring=(now/1000+a.x)%2/2;c.strokeStyle=`rgba(185,147,58,${(1-ring)*.5})`;dia(c,a.x,a.y,9+ring*30);c.stroke()});
+    const pct=Math.round(100*lit/Math.max(1,tot));const n=act.length;
+    if(pct!==lastLit){$('#mkLit').textContent=AR(pct)+'٪';lastLit=pct}
+    if(n!==lastN){$('#mkProj').textContent=AR(n);lastN=n}}
+    requestAnimationFrame(draw)}requestAnimationFrame(draw)})();
+
+/* ═══ السلسلة ═══ */
+function layoutChain(){const ch=$('#chain');if(!ch)return;const row=$('.chain-row',ch);const ds=$$('.cnode .d',ch);const cr=ch.getBoundingClientRect();
+  const pts=ds.map(d=>{const r=d.getBoundingClientRect();return[r.left+r.width/2-cr.left,r.top+r.height/2-cr.top]});
+  const p=$('#chainPath');p.setAttribute('d','M'+pts.map(q=>q.join(' ')).join(' L'));const L=p.getTotalLength();p.style.setProperty('--len',L);
+  const a=pts[pts.length-1],b=pts[0];const yb=a[1]+cr.height*0.0+110;
+  $('#chainLoop').setAttribute('d',`M${a[0]} ${a[1]+34} C ${a[0]} ${yb}, ${b[0]} ${yb}, ${b[0]} ${b[1]+34}`)}
+
+/* ═══ الاقتباسات المتدرّجة ═══ */
+['quote1','quote2'].forEach(id=>{const ws=$$('#'+id+' .w');PIN[id]=p=>{const k=Math.round(clamp(p*1.25)*ws.length);ws.forEach((w,i)=>w.classList.toggle('lit',i<k))}});
+
+/* ═══ الشبكة ═══ */
+(function(){const cv=$('#netCv'),box=$('#netbox'),tip=$('#netTip');const R=rng(21);const TYPES=['كيان','فرد','صاحب مشروع','باحث'];
+  const N=[];for(let i=0;i<32;i++)N.push({x:.08+R()*.84,y:.12+R()*.68,vx:(R()-.5)*.00035,vy:(R()-.5)*.00035,t:i%4,ph:R()*6});
+  const d2=(a,b)=>(a.x-b.x)**2+(a.y-b.y)**2;
+  const E1=[],E2=[];N.forEach((a,i)=>{let best=-1,bd=9;N.forEach((b,j)=>{if(j!==i&&b.t===a.t&&d2(a,b)<bd){bd=d2(a,b);best=j}});if(best>=0&&!E1.some(e=>(e[0]===best&&e[1]===i)))E1.push([i,best])});
+  N.forEach((a,i)=>{const c=N.map((b,j)=>[j,d2(a,b)]).filter(([j])=>N[j].t!==a.t).sort((x,y)=>x[1]-y[1]).slice(0,2);c.forEach(([j])=>{if(!E2.some(e=>(e[0]===j&&e[1]===i)||(e[0]===i&&e[1]===j)))E2.push([i,j])})});
+  const CL=[];const used=new Set();
+  for(const seedI of [3,14,25,9]){const a=N[seedI];if(used.has(seedI))continue;const g=[seedI];for(let t=0;t<4;t++){if(t===a.t)continue;let best=-1,bd=9;N.forEach((b,j)=>{if(b.t===t&&!used.has(j)&&!g.includes(j)&&d2(a,b)<bd){bd=d2(a,b);best=j}});if(best>=0)g.push(best)}g.forEach(x=>used.add(x));CL.push(g)}
+  let P=0,hover=-1;const verbs=$$('#verbs .verb');
+  PIN.net=p=>{P=p;const k=Math.min(3,Math.floor(p*4.2));verbs.forEach((v,i)=>{v.classList.toggle('cur',i===k);v.classList.toggle('done',i<k)})};
+  box.addEventListener('pointermove',e=>{const r=box.getBoundingClientRect();const x=(e.clientX-r.left)/r.width,y=(e.clientY-r.top)/r.height;hover=-1;let bd=0.0016;N.forEach((n,i)=>{const d=(n.x-x)**2*(r.width/r.height)**2+(n.y-y)**2;if(d<bd){bd=d;hover=i}});
+    if(hover>=0){tip.style.opacity=1;tip.style.right=(r.width-N[hover].x*r.width)+'px';tip.style.top=N[hover].y*r.height+'px';tip.textContent=TYPES[N[hover].t]}else tip.style.opacity=0});
+  box.addEventListener('pointerleave',()=>{hover=-1;tip.style.opacity=0});
+  let lastL=-1,lastP=-1;
+  function draw(now){if(visible(cv)){const {c,w,h}=fitCanvas(cv);c.clearRect(0,0,w,h);const t=now/1000;
+    N.forEach(n=>{n.x+=n.vx+Math.sin(t*.6+n.ph)*.00012;n.y+=n.vy+Math.cos(t*.5+n.ph)*.00012;if(n.x<.06||n.x>.94)n.vx*=-1;if(n.y<.1||n.y>.82)n.vy*=-1});
+    const X=n=>n.x*w,Y=n=>n.y*h;
+    const f1=clamp((P-.24)/.22),f2=clamp((P-.48)/.24),f3=clamp((P-.74)/.2);
+    const e1=Math.round(E1.length*f1),e2=Math.round(E2.length*f2),cl=Math.round(CL.length*f3);
+    // مشروعات
+    for(let k=0;k<cl;k++){const g=CL[k].map(i=>N[i]);const cx=g.reduce((s,n)=>s+X(n),0)/g.length,cy=g.reduce((s,n)=>s+Y(n),0)/g.length;
+      const rad=Math.max(...g.map(n=>Math.hypot(X(n)-cx,Y(n)-cy)))+26;const gr=c.createRadialGradient(cx,cy,0,cx,cy,rad);gr.addColorStop(0,'rgba(185,147,58,.28)');gr.addColorStop(1,'rgba(185,147,58,0)');c.fillStyle=gr;c.beginPath();c.arc(cx,cy,rad,0,7);c.fill();
+      c.strokeStyle='rgba(185,147,58,.9)';c.lineWidth=2;for(let a=0;a<g.length;a++)for(let b=a+1;b<g.length;b++){c.beginPath();c.moveTo(X(g[a]),Y(g[a]));c.lineTo(X(g[b]),Y(g[b]));c.stroke()}
+      c.fillStyle='#B9933A';dia(c,cx,cy,9);c.fill()}
+    c.lineWidth=1.1;c.strokeStyle='rgba(35,40,48,.32)';for(let k=0;k<e1;k++){const[a,b]=E1[k];c.beginPath();c.moveTo(X(N[a]),Y(N[a]));c.lineTo(X(N[b]),Y(N[b]));c.stroke()}
+    c.strokeStyle='rgba(126,96,41,.5)';c.setLineDash([4,4]);for(let k=0;k<e2;k++){const[a,b]=E2[k];c.beginPath();c.moveTo(X(N[a]),Y(N[a]));c.lineTo(X(N[b]),Y(N[b]));c.stroke()}c.setLineDash([]);
+    const inCl=new Set();CL.slice(0,cl).forEach(g=>g.forEach(i=>inCl.add(i)));
+    N.forEach((n,i)=>{const x=X(n),y=Y(n);const s=(i===hover?1.5:1)*(n.t===0?9:n.t===2?8:n.t===1?7.5:6);c.lineWidth=1.6;
+      if(inCl.has(i)){c.fillStyle='#B9933A';dia(c,x,y,s);c.fill();return}
+      if(n.t===0){c.fillStyle='#232830';dia(c,x,y,s);c.fill()}else if(n.t===1){c.fillStyle='#FDFCF8';dia(c,x,y,s);c.fill();c.strokeStyle='#232830';c.stroke()}else if(n.t===2){c.fillStyle='#5F6672';dia(c,x,y,s);c.fill()}else{c.fillStyle='#C9C3B4';dia(c,x,y,s);c.fill()}});
+    const L=e1+e2+cl*6;if(L!==lastL){$('#nLinks').textContent=AR(L);lastL=L}if(cl!==lastP){$('#nProj').textContent=AR(cl);lastP=cl}}
+    requestAnimationFrame(draw)}requestAnimationFrame(draw)})();
+
+/* ═══ من أنت ═══ */
+(function(){const D=[
+  ['كيانًا',['كيانات أخرى تجمعك بها مصالح مشتركة وشراكات استراتيجية','كفاءات متخصصة تستطيع استقطابها','أفكار ومشروعات قد ترغب في تبنّيها أو الاستثمار فيها']],
+  ['فردًا',['أفراد يشاركونك الاهتمام','شريك يكمل قدراتك','جهة تستقطب موهبتك، أو فرصة لتأسيس مشروع جديد']],
+  ['صاحب مشروع',['من يعينك على تطويره','من يسد نقصًا في فريقك','من يفتح لك بابًا إلى السوق والعملاء']],
+  ['باحثًا أو صاحب معرفة',['من ينتفع بمعرفتك','من يثريها بخبرته','فكرة بحثية قد تتحول إلى حل عملي']]];
+  const btns=$$('#tabs .tabbtn'),panel=$('#whoPanel');let cur=-1,timer=null,held=false;const CYC=5200;
+  function show(k){cur=k;btns.forEach((b,i)=>{b.classList.toggle('sel',i===k);b.classList.toggle('hold',held);b.style.setProperty('--cyc',CYC+'ms');const bar=b.querySelector('.bar');bar.style.animation='none';bar.offsetWidth;bar.style.animation=''});
+    panel.innerHTML=`<h3>إن كنت <span>${D[k][0]}</span> فستجد:</h3>`+D[k][1].map((t,i)=>`<div class="ben" style="--i:${i}"><i>${AR(i+1)}</i><p>${t}</p></div>`).join('')}
+  function cycle(){clearInterval(timer);timer=setInterval(()=>{if(!held)show((cur+1)%4)},CYC)}
+  btns.forEach((b,i)=>b.addEventListener('click',()=>{held=true;clearInterval(timer);show(i)}));
+  ENTER.whoStart=()=>{held=false;show(0);cycle()};LEAVE.whoStop=()=>clearInterval(timer);show(0)})();
+
+/* ═══ المسار المتنامي ═══ */
+(function(){const g=$('#growth');const nodes=$$('.pnode',g);const pos=[[.9,.72],[.64,.56],[.38,.4],[.1,.2]];const sizes=[26,38,52,72];
+  function lay(){const r=g.getBoundingClientRect();const pts=pos.map(([x,y])=>[x*r.width,y*r.height]);
+    nodes.forEach((n,i)=>{n.style.right=(r.width-pts[i][0])+'px';n.style.top=pts[i][1]+'px';n.style.transform='translate(50%,-'+(sizes[i]/2+0)+'px)';const d=n.querySelector('.dm');d.style.width=d.style.height=sizes[i]+'px'});
+    let d=`M${pts[0][0]} ${pts[0][1]}`;for(let i=1;i<pts.length;i++){const[a,b]=[pts[i-1],pts[i]];const mx=(a[0]+b[0])/2;d+=` C ${mx} ${a[1]}, ${mx} ${b[1]}, ${b[0]} ${b[1]}`}
+    $('#gPathBase').setAttribute('d',d);const gp=$('#gPath');gp.setAttribute('d',d);gp._L=gp.getTotalLength();gp.style.strokeDasharray=gp._L;gp.style.strokeDashoffset=gp._L;g._lay=true}
+  g._relayout=lay;
+  PIN.growth=p=>{if(!g._lay)lay();const q=clamp(p*1.15);const gp=$('#gPath');gp.style.strokeDashoffset=gp._L*(1-q);nodes.forEach((n,i)=>n.classList.toggle('on',q>=i/3-.02))}})();
+
+/* ═══ السفر في الزمن ═══ */
+(function(){const yr=$('#year'),yd=$('#ydelta'),ax=$('#axis'),ls=$$('#axis ~ .tt-lines .tt-line');
+  PIN.time=p=>{const q=clamp((p-.08)/.84);const y=2026+Math.round(10*smooth(q));yr.textContent=AR(y);const d=y-2026;
+    yd.innerHTML=d===0?'اليوم':d===1?'بعد <b>سنة</b>':d===2?'بعد <b>سنتين</b>':`بعد <b>${AR(d)}</b> سنوات`;
+    const x=smooth(q)*100;$('.fill',ax).style.width=x+'%';$('.mk',ax).style.right=x+'%';
+    const k=p<.34?0:p<.67?1:2;ls.forEach((l,i)=>l.classList.toggle('cur',i===k))}})();
+
+/* ═══ الرسم المفاهيمي ═══ */
+(function(){const X0=590,X1=10,Y0=235,Y1=12;const cost=t=>100*Math.exp(-2.1*t)+8*t,val=t=>100+95*(1-Math.exp(-2.4*t));
+  const sx=t=>X0+(X1-X0)*t,sy=v=>Y0-(v-0)/(200)*(Y0-Y1);
+  const g=$('#cGrid');let gh='';for(let v=0;v<=200;v+=50)gh+=`<line x1="10" x2="590" y1="${sy(v)}" y2="${sy(v)}" stroke="#E4DFD2"/><text x="598" y="${sy(v)+4}" font-size="11" fill="#5F6672" text-anchor="end">${AR(v)}</text>`;g.innerHTML=gh;
+  const path=(f,T)=>{let d='';for(let i=0;i<=60;i++){const t=T*i/60;d+=(i?'L':'M')+sx(t).toFixed(1)+' '+sy(f(t)).toFixed(1)}return d};
+  const rg=$('#cRange');let anim=null;
+  function set(T){$('#cCost').setAttribute('d',path(cost,T));$('#cVal').setAttribute('d',path(val,T));const x=sx(T);
+    $('#cCur').setAttribute('x1',x);$('#cCur').setAttribute('x2',x);$('#cDotC').setAttribute('cx',x);$('#cDotC').setAttribute('cy',sy(cost(T)));
+    const vy=sy(val(T));$('#cDotV').setAttribute('transform',`translate(${x} ${vy}) rotate(45) translate(-6 -6)`);
+    $('#roC').textContent=AR(Math.round(cost(T)));$('#roV').textContent=AR(Math.round(val(T)));$('#roY').textContent=AR(2026+Math.round(T*10));rg.value=Math.round(T*100)}
+  rg.addEventListener('input',()=>{cancelAnimationFrame(anim);set(rg.value/100)});
+  ENTER.chartRun=()=>{const t0=performance.now();cancelAnimationFrame(anim);const f=now=>{const t=clamp((now-t0)/3200);set(ease(t));if(t<1)anim=requestAnimationFrame(f)};anim=requestAnimationFrame(f)};
+  set(0)})();
+
+/* ═══ محاكاة ملف القضية ═══ */
+(function(){const court=$('#court'),pg=$('#pagesEl');const R=rng(3);pg.innerHTML=Array.from({length:16},()=>`<i style="--w:${R().toFixed(2)}"></i>`).join('');
+  let timers=[];const T=(f,ms)=>timers.push(setTimeout(f,ms));
+  LEAVE.courtReset=()=>{timers.forEach(clearTimeout);timers=[];court.classList.remove('scan');$$('.row,.verdict',court).forEach(r=>r.classList.remove('on'));$$('#pagesEl i').forEach(i=>i.classList.remove('read'));$('#cPages').textContent='٠'};
+  ENTER.courtRun=()=>{LEAVE.courtReset();countTo($('#cPages'),340,{dur:1600});
+    T(()=>{court.classList.add('scan');$$('#pagesEl i').forEach((p,i)=>T(()=>p.classList.add('read'),i*140))},1700);
+    $$('.row',court).forEach((r,i)=>T(()=>r.classList.add('on'),2000+i*600));T(()=>$('.verdict',court).classList.add('on'),2000+4*600+300)}})();
+
+/* ═══ الفرز ═══ */
+function buildSorter(el){const ch=el.dataset.change.split('|'),st=el.dataset.stay.split('|'),lb=el.dataset.labels.split('|');
+  const items=[...ch.map(t=>({t,s:'ch'})),...st.map(t=>({t,s:'st'}))];const R=rng(ch.length*7+st.length);items.sort(()=>R()-.5);
+  el.innerHTML=`<div class="pile"></div><div class="cols" style="display:none"><div class="col ch"><h4>${lb[0]} <small>${lb[1]}</small></h4><div class="chips"></div></div><div class="col st"><h4>${lb[2]} <small>${lb[3]}</small></h4><div class="chips"></div></div></div><button class="sort-again">◆ أعِد الفرز</button>`;
+  const pile=$('.pile',el);items.forEach(it=>{const c=document.createElement('span');c.className='chip';c.textContent=it.t;c.dataset.s=it.s;pile.append(c)});
+  $('.sort-again',el).addEventListener('click',()=>{sortTo(el,false,true);setTimeout(()=>sortTo(el,true),700)})}
+function sortTo(el,sorted,instant){const chips=$$('.chip',el);const first=new Map(chips.map(c=>[c,c.getBoundingClientRect()]));
+  const pile=$('.pile',el),cols=$('.cols',el);
+  if(sorted){cols.style.display='';chips.forEach(c=>$(c.dataset.s==='ch'?'.col.ch .chips':'.col.st .chips',el).append(c));pile.style.display='none'}
+  else{pile.style.display='';chips.sort((a,b)=>(+a.dataset.o||0)-(+b.dataset.o||0));chips.forEach(c=>pile.append(c));cols.style.display='none'}
+  if(instant)return;
+  chips.forEach((c,i)=>{const a=first.get(c),b=c.getBoundingClientRect();const dx=a.left-b.left,dy=a.top-b.top;if(!dx&&!dy)return;
+    c.animate([{transform:`translate(${dx}px,${dy}px)`},{transform:'none'}],{duration:1000,delay:sorted?250+i*70:0,easing:'cubic-bezier(.2,.8,.2,1)',fill:'backwards'})});
+  if(sorted)$$('.col',el).forEach((c,i)=>c.animate([{opacity:0},{opacity:1}],{duration:600,delay:i*120,fill:'backwards'}))}
+$$('[data-sorter]').forEach(el=>{buildSorter(el);$$('.chip',el).forEach((c,i)=>c.dataset.o=i)});
+
+/* ═══ تيّار العقود ═══ */
+(function(){const cv=$('#flowCv');let mode='today',run=false,touched=false,auto=null;let items=[],queue=[],last=0,spawnAcc=0,lawAcc=0;
+  const S={in:0,auto:0,law:0};const R=rng(11);
+  const seg=$$('#flowSeg button');function setMode(m){mode=m;seg.forEach(b=>b.classList.toggle('sel',b.dataset.m===m))}
+  seg.forEach(b=>b.addEventListener('click',()=>{touched=true;clearTimeout(auto);setMode(b.dataset.m)}));
+  function reset(){items=[];queue=[];S.in=S.auto=S.law=0;spawnAcc=0;lawAcc=0}
+  ENTER.flowStart=()=>{reset();touched=false;setMode('today');run=true;last=performance.now();clearTimeout(auto);auto=setTimeout(()=>{if(!touched)setMode('future')},7000);requestAnimationFrame(step)};
+  LEAVE.flowStop=()=>{run=false;clearTimeout(auto)};
+  const ARRIVE=0.3,LAWRATE=1.5;
+  function step(now){if(!run)return;const dt=Math.min(.05,(now-last)/1000);last=now;const {c,w,h}=fitCanvas(cv);
+    const gx=w*.56,laneY=h*.42,lawX=w*.2,lawY=h*.76,autoY=h*.2;
+    spawnAcc+=dt;while(spawnAcc>ARRIVE){spawnAcc-=ARRIVE;S.in++;items.push({x:w+20,y:laneY+(R()-.5)*h*.12,ex:R()<.16,st:'in',a:1})}
+    lawAcc+=dt;if(lawAcc>LAWRATE&&queue.length){lawAcc=0;const it=queue.shift();it.st='done';S.law++}
+    if(!queue.length)lawAcc=Math.min(lawAcc,LAWRATE);
+    for(const it of items){if(it.st==='in'){it.x-=dt*w*.22;it.y+=(laneY-it.y)*dt*2;if(it.x<=gx){if(mode==='future'&&!it.ex){it.st='auto';S.auto++}else{it.st='toLaw';it.ex=true}}}
+      else if(it.st==='auto'){it.x-=dt*w*.2;it.y+=(autoY-it.y)*dt*3;if(it.x<-20)it.dead=true}
+      else if(it.st==='toLaw'){const qi=queue.length;it.tx=lawX+w*.12-(qi%12)*w*.012;it.ty=lawY-6-Math.floor(qi/12)*9;it.st='q';queue.push(it)}
+      else if(it.st==='q'){}
+      else if(it.st==='done'){it.x-=dt*w*.2;it.a-=dt*1.2;if(it.a<=0||it.x<-20)it.dead=true}}
+    queue.forEach((it,qi)=>{const tx=lawX+w*.12-(qi%14)*w*.011,ty=lawY+10-Math.floor(qi/14)*10;it.x+=(tx-it.x)*dt*5;it.y+=(ty-it.y)*dt*5});
+    items=items.filter(i=>!i.dead);
+    c.clearRect(0,0,w,h);c.font='12px Thm Sans, sans-serif';c.textAlign='center';
+    // الممرّات
+    c.strokeStyle='#E4DFD2';c.lineWidth=1;c.setLineDash([5,6]);c.beginPath();c.moveTo(w,laneY);c.lineTo(gx,laneY);c.stroke();
+    c.beginPath();c.moveTo(gx,laneY);c.quadraticCurveTo(gx-w*.08,autoY,gx-w*.2,autoY);c.lineTo(0,autoY);c.stroke();
+    c.beginPath();c.moveTo(gx,laneY);c.quadraticCurveTo(gx-w*.05,lawY,lawX+w*.14,lawY);c.stroke();c.setLineDash([]);
+    // البوابة
+    const fut=mode==='future';c.save();c.translate(gx,laneY);c.rotate(Math.PI/4);c.fillStyle=fut?'#B9933A':'#FDFCF8';c.strokeStyle=fut?'#B9933A':'#C9C3B4';c.lineWidth=1.5;c.fillRect(-16,-16,32,32);c.strokeRect(-16,-16,32,32);c.restore();
+    c.fillStyle=fut?'#7E6029':'#5F6672';c.fillText(fut?'دليل التفاوض: مراجعة آلية':'لا مراجعة آلية',gx,laneY-34);
+    c.fillStyle='#5F6672';c.fillText('عقود واردة',w-60,laneY-22);c.fillText('مُعتمد آليًا',w*.08,autoY-14);
+    // مكتب المحامي
+    c.fillStyle='#12171E';c.beginPath();c.roundRect(lawX-w*.17,lawY-h*.16,w*.15,h*.3,10);c.fill();c.fillStyle='#EAE5D8';c.fillText('المحامي',lawX-w*.095,lawY-h*.16+22);
+    c.fillStyle='rgba(185,147,58,'+(.35+.65*(lawAcc/LAWRATE))+')';c.beginPath();c.arc(lawX-w*.095,lawY+4,10+6*(lawAcc/LAWRATE),0,7);c.fill();
+    c.fillStyle='#5F6672';c.fillText('قائمة الانتظار',lawX+w*.06,lawY+h*.16+4);
+    for(const it of items){c.globalAlpha=Math.max(0,it.a);const gold=it.ex&&(it.st==='q'||it.st==='toLaw'||it.st==='done')&&fut;
+      c.fillStyle=it.st==='auto'?'#C9C3B4':gold?'#B9933A':it.st==='q'?'#A84545':'#232830';c.beginPath();c.roundRect(it.x-7,it.y-9,14,18,2);c.fill();
+      c.fillStyle='rgba(255,255,255,.7)';c.fillRect(it.x-4,it.y-4,8,1.4);c.fillRect(it.x-4,it.y,6,1.4)}
+    c.globalAlpha=1;
+    $('#fIn').textContent=AR(S.in);$('#fAuto').textContent=AR(S.auto);$('#fLaw').textContent=AR(S.law);$('#fQ').textContent=AR(queue.length);
+    if(queue.length>120)queue.splice(0,queue.length-120).forEach(i=>i.dead=true);
+    requestAnimationFrame(step)}})();
+
+/* ═══ السلّم ═══ */
+(function(){const L=$('#ladder');const base=[['البحث','الآلة'],['التلخيص','الآلة'],['المسودة الأولى','الآلة'],['المراجعة',''],['المرافعة والتفاوض',''],['الحكم المهني','']];
+  const nw=['المحاكاة','التحقق من مخرجات الآلة','التدريب الموجَّه'];
+  L.innerHTML=base.map((b,i)=>`<div class="rung" data-i="${i}"><span class="face">${b[0]}</span><small>${b[1]?'تؤديها '+b[1]:''}</small></div>`).join('');
+  const rungs=$$('.rung',L),st=$$('#lstage>div');
+  PIN.ladder=p=>{const k=p<.33?0:p<.66?1:2;st.forEach((s,i)=>s.classList.toggle('cur',i===k));
+    rungs.forEach((r,i)=>{const f=r.querySelector('.face'),sm=r.querySelector('small');r.classList.remove('ai','nw');
+      if(i<3&&k===1){r.classList.add('ai');f.textContent=base[i][0];sm.textContent='تؤديها الأدوات'}
+      else if(i<3&&k===2){r.classList.add('nw');f.textContent=nw[i];sm.textContent='درجة جديدة'}
+      else{f.textContent=base[i][0];sm.textContent=''}})}})();
+
+/* ═══ تمرين الخطأ ═══ */
+(function(){const spans=$$('#ans span'),res=$('#exres');spans.forEach(s=>s.addEventListener('click',()=>{spans.forEach(x=>x.classList.remove('bad','good','miss'));
+  if(s.dataset.bad!==undefined){s.classList.add('bad');res.innerHTML='<b>أحسنت.</b> هذا الحكم لا وجود له؛ اختلقته الآلة برقمه وتاريخه. وقد قدّم محامون في دول عدة سوابق مختلَقة كهذه إلى المحاكم. <b>والتحقق من المصدر هو مهارة القانوني الجديدة.</b>'}
+  else{s.classList.add('good');spans.find(x=>x.dataset.bad!==undefined).classList.add('miss');res.innerHTML='هذه الجملة عامة ولا تدّعي مصدرًا محددًا. <b>الجملة المشكوك فيها هي المظلّلة:</b> حكم برقم دقيق لا وجود له.'}}))})();
+
+/* ═══ قلب البطاقة ═══ */
+(function(){const f=$('#flip');let t;ENTER.flipOn=()=>{clearTimeout(t);f.classList.remove('turned');t=setTimeout(()=>f.classList.add('turned'),1600)};LEAVE.flipOff=()=>{clearTimeout(t);f.classList.remove('turned')};
+  f.addEventListener('click',()=>{clearTimeout(t);f.classList.toggle('turned')});
+  const pr=$('.prices');pr.classList.add('rv')})();
+
+/* ═══ خريطة الخانات ═══ */
+(function(){const O=$('#orbit'),det=$('#mapDetail'),svg=$('#orbitSvg');const D=[
+  ['البنية التحتية للمعرفة',['قواعد أحكام وأنظمة منظّمة','نماذج متخصصة في العربية القانونية','وهي الأساس الذي تقوم عليه الخانات الأخرى']],
+  ['أدوات المحامي',['البحث القانوني','الصياغة وتحليل المستندات','إدارة المكتب']],
+  ['حلول الإدارات القانونية',['إدارة العقود','الامتثال ورصد التنظيمات','إدارة المنازعات']],
+  ['خدمات للجمهور',['استشارات أولية ميسّرة','نماذج ومستندات','تسوية النزاعات الصغيرة']],
+  ['التعليم والتأهيل',['منصات المحاكاة','التدريب','الشهادات']],
+  ['الثقة والحوكمة',['تدقيق الأنظمة الذكية','فحص الأدلة الرقمية','حماية البيانات']]];
+  const pos=[[50,50]];for(let i=0;i<5;i++){const a=-Math.PI/2+i*2*Math.PI/5;pos.push([50+37*Math.cos(a),50+37*Math.sin(a)])}
+  svg.setAttribute('viewBox','0 0 100 100');svg.innerHTML=pos.slice(1).map((p,i)=>{const l=Math.hypot(p[0]-50,p[1]-50);return`<line x1="50" y1="50" x2="${p[0]}" y2="${p[1]}" style="--l:${l};--i:${i}" vector-effect="non-scaling-stroke"/>`}).join('');
+  D.forEach((d,i)=>{const c=document.createElement('div');c.className='cell'+(i===0?' core':'');c.style.right=(100-pos[i][0])+'%';c.style.top=pos[i][1]+'%';c.style.setProperty('--i',i);c.innerHTML=`<span>${d[0]}</span>`;
+    c.addEventListener('mouseenter',()=>{held=true;show(i)});c.addEventListener('click',()=>{held=true;show(i)});O.append(c)});
+  const cells=$$('.cell',O);let cur=0,timer=null,held=false;
+  function show(i){cur=i;cells.forEach((c,j)=>c.classList.toggle('sel',j===i));det.innerHTML=`<div class="eyebrow">الخانة ${AR(i+1)} من ${AR(6)}</div><h3>${D[i][0]}</h3><ul>${D[i][1].map((t,k)=>`<li style="--i:${k}">${t}</li>`).join('')}</ul>`}
+  ENTER.mapStart=()=>{held=false;show(0);clearInterval(timer);timer=setInterval(()=>{if(!held)show((cur+1)%6)},3800)};LEAVE.mapStop=()=>clearInterval(timer);show(0)})();
+
+/* ═══ تجميع المكوّنات ═══ */
+(function(){const A=$('#assemble'),ings=$$('.ing',A),core=$('#coreDm'),cap=$('#coreCap');
+  const spread=[[82,22],[18,22],[82,78],[18,78]];
+  PIN.assemble=p=>{const q=smooth(clamp((p-.05)/.7));const r=A.getBoundingClientRect();const s=ings[0].offsetWidth;const off=(s*.6)/r.width*100,offY=(s*.6)/r.height*100;
+    const tgt=[[50,50-offY*1.0],[50-off,50],[50+off,50],[50,50+offY*1.0]];
+    const T=[[50+off*0,50-offY],[50+off,50],[50-off,50],[50,50+offY]];
+    ings.forEach((g,i)=>{const x=lerp(spread[i][0],T[i][0],q),y=lerp(spread[i][1],T[i][1]-6,q);g.style.right=(100-x)+'%';g.style.top=y+'%';g.classList.toggle('in',q>.97);g.classList.toggle('spread',q<.5)});
+    core.style.right='50%';core.style.top=(50-6)+'%';core.classList.toggle('on',p>.8);cap.classList.toggle('on',p>.84)}})();
+
+/* ═══ تصويت القاعة ═══ */
+$$('[data-poll]').forEach(el=>{const key='ethka-poll-'+el.dataset.poll;const opts=el.dataset.opts.split('|');let v;try{v=JSON.parse(localStorage.getItem(key))||[]}catch(e){v=[]}opts.forEach((_,i)=>v[i]=v[i]||0);
+  el.innerHTML=opts.map((o,i)=>`<button class="opt" data-i="${i}"><i class="fillbar"></i><span>${o}</span><em class="cnt"></em><b>٠٪</b></button>`).join('')+`<div class="pollbar"><span>انقر لإضافة صوت · Shift+نقر للإنقاص</span><span class="tot"></span><button class="rst">تصفير</button></div>`;
+  function render(){const tot=v.reduce((a,b)=>a+b,0),mx=Math.max(...v);$$('.opt',el).forEach((b,i)=>{const pc=tot?Math.round(100*v[i]/tot):0;b.querySelector('.fillbar').style.width=pc+'%';b.querySelector('b').textContent=AR(pc)+'٪';b.querySelector('.cnt').textContent=v[i]===0?'':v[i]===1?'صوت واحد':v[i]===2?'صوتان':AR(v[i])+(v[i]<=10?' أصوات':' صوتًا');b.classList.toggle('top',tot>0&&v[i]===mx)});$('.tot',el).textContent='المجموع: '+AR(tot);try{localStorage.setItem(key,JSON.stringify(v))}catch(e){}}
+  el.addEventListener('click',e=>{const b=e.target.closest('.opt');if(b){const i=+b.dataset.i;v[i]=Math.max(0,v[i]+(e.shiftKey?-1:1));render()}if(e.target.closest('.rst')){v=v.map(()=>0);render()}});render()});
+
+/* ═══ جدار المشكلات ═══ */
+(function(){const key='ethka-wall';let W;try{W=JSON.parse(localStorage.getItem(key))||[]}catch(e){W=[]}const wall=$('#wall'),inp=$('#wallIn');
+  function render(){wall.innerHTML='';W.forEach((t,i)=>{const d=document.createElement('div');d.className='sticky';d.style.setProperty('--r',((i*37%9)-4)*.6+'deg');d.textContent=t;const x=document.createElement('button');x.textContent='×';x.onclick=()=>{W.splice(i,1);save()};d.append(x);wall.append(d)})}
+  function save(){try{localStorage.setItem(key,JSON.stringify(W))}catch(e){}render()}
+  function add(){const t=inp.value.trim();if(!t)return;W.push(t);inp.value='';save()}
+  $('#wallAdd').onclick=add;inp.addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Enter')add()});render()})();
+
+/* ═══ التنقّل ═══ */
+const scenes=$$('#main>section');
+function stops(){const out=[];scenes.forEach(s=>{const top=s.getBoundingClientRect().top+scrollY;out.push(top);if(s.dataset.pin){const n=+s.dataset.steps||2;const span=s.offsetHeight-vh();for(let k=1;k<=n;k++)out.push(top+span*k/n)}});return out}
+let navLock=0;
+function candidates(){const T=tipY(),H=vh();return revs.filter(el=>!el._on&&!el._auto&&!el.closest('[data-pin]')&&!el.closest('#hero')).map(el=>({el,top:el.getBoundingClientRect().top})).filter(o=>o.top+30>=T-1&&o.top>-H*.2).sort((a,b)=>a.top-b.top)}
+function go(dir){const S=stops(),y=scrollY,H=vh();
+  if(dir>0){const next=S.find(v=>v>y+8);const limit=next===undefined?Infinity:next-y;const c=candidates().find(o=>o.top<limit-20);
+    if(c){if(c.top<H*.92){tween(y,y,Math.min(.95,(c.top+46)/H));return}const dy=c.top-H*.72;tween(y,y+dy,Math.min(.95,(H*.72+46)/H));return}
+    tween(y,next===undefined?document.documentElement.scrollHeight:next,TIP0);return}
+  if(tipF>TIP0+.005){const T=tipY();const on=revs.filter(el=>el._on&&!el._auto&&!el.closest('[data-pin]')&&!el.closest('#hero')).map(el=>el.getBoundingClientRect().top).filter(t=>t+30<T&&t+30>H*TIP0).sort((a,b)=>b-a);
+    tween(y,y,on.length?Math.max(TIP0,(on[0]+18)/H):TIP0);return}
+  const prev=[...S].reverse().find(v=>v<y-8);tween(y,prev===undefined?0:prev,TIP0)}
+function tween(fromY,toY,toTip){const t0=performance.now(),d=toY-fromY,f0=tipF;const dur=Math.min(1100,Math.max(Math.abs(toTip-f0)>.001&&!d?650:520,Math.abs(d)*.6));cancelAnimationFrame(navLock);
+  const f=now=>{const k=clamp((now-t0)/dur);const e=k<.5?4*k*k*k:1-Math.pow(-2*k+2,3)/2;setTip(lerp(f0,toTip,e));if(d)scrollTo(0,fromY+d*e);tick();if(k<1)navLock=requestAnimationFrame(f)};navLock=requestAnimationFrame(f)}
+function smoothTo(t){tween(scrollY,t,TIP0)}
+addEventListener('keydown',e=>{if(e.target.matches('input'))return;const k=e.key;
+  if(['ArrowLeft','ArrowDown','PageDown',' '].includes(k)){e.preventDefault();go(1)}
+  else if(['ArrowRight','ArrowUp','PageUp'].includes(k)){e.preventDefault();go(-1)}
+  else if(k==='Home'){e.preventDefault();smoothTo(0)}else if(k==='End'){e.preventDefault();smoothTo(document.documentElement.scrollHeight)}
+  else if(k==='f'||k==='F'||k==='ب')toggleFS();else if(k==='m'||k==='M'||k==='ة')toggleMenu();else if(k==='Escape')$('#menu').classList.remove('open')});
+function toggleFS(){document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen().catch(()=>{})}
+function toggleMenu(){$('#menu').classList.toggle('open')}
+$('#fsBtn').onclick=toggleFS;$('#menuBtn').onclick=toggleMenu;
+$$('[data-go]').forEach(b=>b.addEventListener('click',()=>{const t=$(b.dataset.go);smoothTo(t.getBoundingClientRect().top+scrollY)}));
+// الفهرس
+(function(){const ol=$('#menuList');let n=0;scenes.forEach(s=>{n++;if(s.dataset.part&&(s.id==='p1'||s.id==='p2')){const li=document.createElement('li');li.className='part';li.textContent=s.dataset.part;ol.append(li)}
+  const li=document.createElement('li');const a=document.createElement('a');a.href='#';a.innerHTML=`<i>${AR(n)}</i>${s.dataset.title||''}`;a.onclick=e=>{e.preventDefault();$('#menu').classList.remove('open');scrollTo(0,s.getBoundingClientRect().top+scrollY)};li.append(a);ol.append(li)})})();
+function updateWhere(){const y=tipY();let k=0;scenes.forEach((s,i)=>{if(s.getBoundingClientRect().top<=y)k=i});const t=AR(k+1)+' / '+AR(scenes.length);if($('#where').textContent!==t)$('#where').textContent=t}
+
+/* ═══ تشغيل ═══ */
+function layout(){layoutChain();$('#growth')._relayout&&$('#growth')._relayout();placeNodes();collect();tick()}
+addEventListener('scroll',req,{passive:true});addEventListener('resize',()=>{clearTimeout(layout._t);layout._t=setTimeout(layout,120)});
+$('#heroLogo').classList.add('on');
+(document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve()).then(()=>{layout();setTimeout(layout,400)});
+layout();
+})();
+</script>
+</body>
+</html>
