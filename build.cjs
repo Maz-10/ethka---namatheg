@@ -190,11 +190,11 @@ a{color:inherit;text-decoration:none}
 </div>
 
 <!-- الذيل -->
-<!-- الردّ: رابطان باسم المدعوّ وحده -->
-<div style="position:absolute;top:197.4mm;left:0;right:0;display:flex;justify-content:center;gap:3mm;direction:rtl">
+<!-- الردّ: رابطان باسم المدعوّ وحده (RSVP=0 يحذفهما) -->
+${process.env.RSVP === '0' ? '' : `<div style="position:absolute;top:197.4mm;left:0;right:0;display:flex;justify-content:center;gap:3mm;direction:rtl">
   <a href="${RSVP_YES}" style="display:inline-flex;align-items:center;justify-content:center;width:34mm;height:6.6mm;border-radius:99mm;background:${C.goldDeep};color:#FBF7EE;font-weight:500;font-size:8.6pt">تأكيد الحضور</a>
   <a href="${RSVP_NO}" style="display:inline-flex;align-items:center;justify-content:center;width:34mm;height:6.6mm;border-radius:99mm;border:.18mm solid ${C.ink}66;color:${C.ink};font-weight:400;font-size:8.6pt">الاعتذار</a>
-</div>
+</div>`}
 </div></body></html>`
 
 fs.writeFileSync(path.join(OUT, 'card.html'), html)
