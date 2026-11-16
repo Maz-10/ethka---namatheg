@@ -33,7 +33,7 @@ const STYLES = {
   'غلاف': cover, 'توقيع': { html: sign }, 'تذهيب': { html: goldTone },
   'تموج': { html: ripple }, 'زجاج': { html: glass }, 'قصة': { html: cut },
 }
-const styles = (opt('style') || doc.meta.style || 'غلاف,توقيع,تذهيب').split(',')
+const styles = (opt('style') || doc.meta.style || 'توقيع').split(',')
 for (const st of styles) if (!STYLES[st]) throw new Error(`نمطٌ غيرُ معروف: «${st}» — المتاح: ${Object.keys(STYLES).join('، ')}`)
 
 const MIME = { '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp' }
@@ -67,9 +67,9 @@ for (const [i, p] of doc.photos.entries()) {
     report.push({
       ملف: name, نمط: st, مقاس: size,
       زاوية: { اختيار: c.name, بـ: c.by, مركزُ_الموضوع: c.subject, المقارنة: c.all.map(({ name, busy, dist, lum }) => ({ name, حدّة: busy, بُعد: dist, سطوع: lum })) },
-      غشاء: lk.veil, مستويات: lk.levels, ...(lk.ink ? { حبرُ_الشعار: lk.ink, سطوعُ_موضعه: lk.spot, ظلّ: lk.shade } : {}),
+      غشاء: lk.veil, مستويات: lk.levels, ...(lk.shade ? { ظلُّ_الأسفل: lk.shade, سطوعُ_الأسفل: lk.spot } : {}),
     })
-    console.log(`◆ ${name}  ${size}  الزاوية: ${c.name}${lk.ink ? '  حبر=' + lk.ink + ' (سطوع ' + lk.spot + ')' : ''}`)
+    console.log(`◆ ${name}  ${size}  الزاوية: ${c.name}${lk.shade ? '  ظلّ=' + lk.shade + ' (سطوع الأسفل ' + lk.spot + ')' : ''}`)
   }
 }
 
