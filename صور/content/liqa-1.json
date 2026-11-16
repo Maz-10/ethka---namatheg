@@ -1,6 +1,29 @@
 {
-  "meta": { "file": "اللقاء-الافتتاحي", "style": "توقيع" },
+  "meta": {
+    "file": "اللقاء-الافتتاحي",
+    "style": "توقيع"
+  },
   "photos": [
-    { "src": "photos/liqa-1-01.jpg" }
+    {
+      "src": "photos/liqa-1-01.jpg"
+    },
+    {
+      "src": "photos/liqa-1-02.jpg"
+    },
+    {
+      "src": "photos/liqa-1-03.jpg"
+    },
+    {
+      "src": "photos/liqa-1-04.jpg"
+    },
+    {
+      "src": "photos/liqa-1-05.jpg"
+    },
+    {
+      "src": "photos/liqa-1-06.jpg"
+    },
+    {
+      "src": "photos/liqa-1-07.jpg"
+    }
   ]
 }
