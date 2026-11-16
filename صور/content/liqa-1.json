@@ -1,6 +1,5 @@
 {
-  "meta": { "file": "اللقاء-الافتتاحي" },
-  "formats": ["الأصل"],
+  "meta": { "file": "اللقاء-الافتتاحي", "tone": "ورق" },
   "photos": [
     { "src": "photos/liqa-1-01.jpg" }
   ]

@@ -1,165 +1,148 @@
-// ═══ الإطار — هويّةُ إذكاء على الصورة، بلا كلام ═══
-// الصورةُ كاملةٌ تملأ المقاس، وفوقها الهويّةُ وحدها: موجةٌ زجاجيّة بلون الليل في أسفلها، حافّتُها خيطٌ ذهبيّ،
-// وعلى قمّتها المعيّنُ الذهبيّ بحلقةٍ وتوهّج، وفوقها خطوطُ تموّجٍ تهدأ كلّما ارتفعت؛ والشعارُ داخل الموجة.
-// لا عنوانَ ولا وصفَ ولا تاريخ — الكلامُ مكانُه نصُّ المنشور والتقرير.
-// كلُّ لونٍ من `../عروض/src/brand.mjs` وكلُّ شكلٍ من الشعار نفسِه (`identity.mjs`) — لا قيمةَ مُرتجلة هنا.
+// ═══ اللوح — الصورةُ مركّبةً في ورق إذكاء ═══
+// الفكرة من «المَجمَع الساكن» (`../الفلسفة-المجمع-الساكن.md`): الكثرةُ حين تنتظم حول نقطةٍ واحدة.
+//   • نطوّقها: تُركَّب الصورةُ في حاشيةٍ من ورق الهويّة كما تُركَّب المطبوعةُ في متحف — بحافّة قطعٍ مشطوفة،
+//     وحولها طوقٌ من خيطٍ شعريّ، في زواياه معيّناتُ الشعار نفسِه، وفي منتصف أضلاعه علاماتُ المحور؛
+//     ومعيّنٌ واحدٌ ذهبيّ في الزاوية العليا اليمنى، حيث تبدأ القراءةُ العربيّة. «الذهبُ نادرٌ فيُرى».
+//   • نغشاها: تذهيبٌ خفيف — الظلالُ تميل إلى ليل الهويّة، والأضواءُ إلى كريميّها، والأوساطُ إلى ذهبها —
+//     كما كانت المطبوعاتُ تُذهَّب قديمًا؛ فتصير صورُ اللقاء كلُّها من نَفَسٍ واحد ولا تفقد ألوانها.
+//   • الختم: الشعارُ في السجلّ تحت الصورة، على محور التناظر، صغيرًا كبطاقة المتحف.
+// ولا كلامَ على اللوح: مكانُ الكلام نصُّ المنشور والتقرير.
+// كلُّ لونٍ من `../عروض/src/brand.mjs`، وكلُّ شكلٍ من الشعار نفسِه (`identity.mjs`) — لا قيمةَ مُرتجلة.
 
-import { C } from '../../عروض/src/brand.mjs'
+import { C, mix } from '../../عروض/src/brand.mjs'
 import { LOGO } from '../../عروض/src/identity.mjs'
 
 const hex = (h) => '#' + h
 const rgba = (h, a) => `rgba(${[0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16)).join(',')},${a})`
+const ch = (h) => [0, 2, 4].map((i) => +(parseInt(h.slice(i, i + 2), 16) / 255).toFixed(4))
 const f = (n) => +n.toFixed(2)
 
-/** المقاسات — بكسل CSS. `H: null` يعني نسبةَ الصورة نفسِها، و`dpr: null` دقّةَ الأصل، و`whole` ألّا يُقتطع منها شيء.
- *  `safeBottom` ما تغطّيه واجهةُ القصص أسفلَ الشاشة، فتعلو الموجةُ والشعارُ فوقه. */
-export const FORMATS = {
-  'الأصل': { W: 1600, H: null, dpr: null, whole: true, use: 'كلّ المنصّات — الصورةُ كاملةً بنسبتها' },
-  'أفقي': { W: 1600, H: 900, dpr: 1.5, use: 'إكس · لينكدإن (‎16:9‎)' },
-  'عمودي': { W: 1080, H: 1350, dpr: 1, use: 'منشور إنستغرام (‎4:5‎)' },
-  'قصة': { W: 1080, H: 1920, dpr: 1, use: 'القصص · سناب شات (‎9:16‎)', safeBottom: 250 },
+/** نغمتا اللوح — الورقُ هو الأساس (سطحُ الهويّة الفاتح)، والليلُ بديلُه (سطحُ الغلاف والختام). */
+export const TONES = {
+  'ورق': {
+    mat: C.cream, bevel: C.paper, cut: rgba(C.ink, 0.16), bead: C.ink, beadOp: 0.42, gemOp: 0.78,
+    ink: C.logoInk, // «أسودُ الملف على الفاتح» — حبرُ الشعار
+    grain: { blend: 'multiply', op: 0.07 },
+  },
+  'ليل': {
+    mat: C.night, bevel: C.night3, cut: rgba(C.pearl, 0.1), bead: C.pearl, beadOp: 0.32, gemOp: 0.7,
+    ink: C.white, // «أبيضُه على الداكن»
+    grain: { blend: 'screen', op: 0.035 },
+  },
 }
 
-/** يُتمّ المقاسَ بأبعاد الصورة: الارتفاعُ من نسبتها، والكثافةُ من عرضها (بلا تكبيرٍ فوق بكسلاتها، وبسقف ٤٠٩٦). */
-export function resolveFormat(F, an) {
-  const H = F.H ?? Math.round((F.W * an.H) / an.W)
-  const dpr = F.dpr ?? Math.min(an.W, 4096) / F.W
-  return { ...F, H, dpr, safeBottom: F.safeBottom || 0 }
+/** النِّسَب — كلُّها من وحدةٍ واحدة: الحاشيةُ `M` جزءٌ من عرض اللوح، وما سواها أضعافُها. */
+const P = {
+  W: 1200,        // عرضُ اللوح (بكسل CSS) — والمخرجُ ضعفُه ما سمحت دقّةُ الصورة
+  margin: 0.064,  // الحاشيةُ الجانبيّة والعليا من العرض
+  record: 2.35,   // السجلُّ تحت الصورة: أضعافُ الحاشية (الأسفلُ أعرضُ كما في تركيب المطبوعات)
+  chain: 0.42,    // بُعدُ الطوق عن حافّة الصورة
+  bead: 0.085,    // وحدةُ المعيّن (من الحاشية)
+  corner: 1.75,   // معيّنُ الزاوية أكبرُ من الوحدة
+  hair: 0.0007,   // سُمكُ الخيط الشعريّ من عرض اللوح
+  bevel: 0.0034,  // حافّةُ القطع المشطوفة حول الصورة
+  logo: 0.14,     // عرضُ الشعار من عرض اللوح
+  aspect: [0.8, 1.91], // حدودُ المنصّات (إنستغرام: من ‎4:5‎ إلى ‎1.91:1‎) — يتّسع اللوحُ ولا تُقصّ الصورة
 }
 
-/** وحدةُ المقاس: جزءٌ من مئةٍ من ضلعه الأقصر — فتتناسب الموجةُ والشعارُ في كلّ نسبة. */
-const unit = (F) => Math.min(F.W, F.H) / 100
-
-/** الموجة: أساسيّةٌ وتوافقيّةٌ خفيفة تكسر انتظامَها، وقمّتُها حيث طُلبت. */
-export function wave(F) {
-  const { W, H } = F
-  const u = unit(F)
-  const y0 = H - F.safeBottom - 11.5 * u, A = 1.9 * u, k = F.W > F.H ? 1 : 0.85, crest = 0.8
-  const a2 = 0.22, k2 = 2.15
-  const p1 = -Math.PI / 2 - 2 * Math.PI * k * crest
-  const p2 = -Math.PI / 2 - 2 * Math.PI * k * k2 * crest // التوافقيّةُ في طورها عند القمّة فلا تزحزحها
-  const fy = (x) => y0 + (A * (Math.sin((2 * Math.PI * k * x) / W + p1) + a2 * Math.sin((2 * Math.PI * k * k2 * x) / W + p2))) / (1 + a2)
-  const N = 220
-  const pts = []
-  for (let i = 0; i <= N; i++) { const x = -4 + ((W + 8) * i) / N; pts.push([x, fy(x)]) }
-  let top = Infinity, bottom = -Infinity
-  for (const [, y] of pts) { top = Math.min(top, y); bottom = Math.max(bottom, y) }
-  const d = 'M' + pts.map(([x, y]) => `${f(x)} ${f(y)}`).join(' L')
-  /** موجةٌ موازية فوق الحافّة بمسافة `up`، تتسطّح بقدر `damp` — تموّجٌ ينتشر ويهدأ. */
-  const echo = (up, damp) => 'M' + pts.map(([x, y]) => `${f(x)} ${f(y0 - up + (y - y0) * damp)}`).join(' L')
-  return { fy, d, echo, crest: { x: crest * W, y: fy(crest * W) }, top, bottom, u }
-}
-
-/** خانةُ الصورة: المقاسُ كلُّه، والظاهرُ منها ما فوق الموجة (عليه يُحسب الاقتطاع). */
-export function photoBox(F) {
-  const wv = wave(F)
-  return { w: F.W, h: F.H, aspect: F.W / F.H, vis: { x: 0, y: 0, w: 1, h: wv.top / F.H } }
-}
-
-/** الشريطُ الذي يلي الموجةَ من الصورة — عليه تُقاس شدّةُ التعتيم (كسورٌ من الخانة). */
-export function scrimZone(F) {
-  const wv = wave(F)
-  const top = Math.max(0, wv.top - 24 * wv.u)
-  return { x: 0, y: top / F.H, w: 1, h: (wv.top - top) / F.H }
+/** القرارُ الثالث — هندسةُ اللوح لصورةٍ بنسبتها: الصورةُ كاملةٌ أبدًا، والحاشيةُ هي التي تتكيّف. */
+export function plate(an) {
+  const W = P.W, r = an.W / an.H
+  const M = P.margin * W, R = P.record * M
+  let pw = W - 2 * M, ph = pw / r, x = M, y = M
+  let H = y + ph + R
+  if (W / H < P.aspect[0]) { // صورةٌ طويلة: يثبت ارتفاعُ اللوح على ‎4:5‎ وتتّسع الحاشيتان الجانبيّتان
+    H = W / P.aspect[0]; ph = H - y - R; pw = ph * r; x = (W - pw) / 2
+  }
+  if (W / H > P.aspect[1]) { // صورةٌ بانوراميّة: يُزاد في الحاشيتين العليا والسفلى
+    const extra = W / P.aspect[1] - H
+    y += extra * 0.45; H += extra
+  }
+  // الكثافة: ضعفُ اللوح، ولا تُعرض الصورةُ بأكبرَ من بكسلاتها
+  const dpr = +Math.min(2, an.W / pw).toFixed(4)
+  return { W, H: Math.round(H), M, x, y, pw, ph, dpr }
 }
 
 const b = LOGO.box.mark
-const DIAMOND_SYMBOL = `<symbol id="dm" viewBox="${b.x} ${b.y} ${b.w} ${b.h}"><path d="${LOGO.diamond}"/></symbol>`
 const L = LOGO.box.lockup
-const LOCKUP = (w) => `<svg viewBox="${L.x} ${L.y} ${L.w} ${L.h}" width="${f(w)}" height="${f((w * L.h) / L.w)}" role="img" aria-label="إذكاء" style="display:block">
-  <path d="${LOGO.name}" fill="${hex(C.white)}"/><path d="${LOGO.dots}" fill="${hex(C.white)}"/>
-  <path d="${LOGO.nameGold}" fill="${hex(C.gold)}"/><path d="${LOGO.diamond}" fill="${hex(C.gold)}"/></svg>`
 
-/** حقلُ المعيّنات: صفوفٌ تتبع الموجةَ تحت حافّتها، تتّقد قربَ القمّة وتخفت بالبعد عنها —
- *  «المجمعُ الساكن» همسًا في الموجة لا زخرفًا. */
-function field(F, wv) {
-  const u = wv.u, s = 0.62 * u, gx = 2 * u, gy = 1.25 * u, rows = 6, reach = 0.34 * F.W
-  let out = ''
-  for (let r = 1; r <= rows; r++) {
-    for (let x = (r % 2 ? gx / 2 : 0); x < F.W; x += gx) {
-      const dist = Math.abs(x - wv.crest.x) / reach
-      if (dist >= 1) continue
-      const y = wv.fy(x) + r * gy + gy * 0.5
-      if (y > F.H - F.safeBottom - u) continue
-      const op = 0.2 * Math.pow(1 - dist, 1.6) * Math.pow(1 - (r - 1) / rows, 1.3)
-      if (op < 0.01) continue
-      out += `<use href="#dm" x="${f(x - s / 2)}" y="${f(y - s / 2)}" width="${f(s)}" height="${f(s)}" opacity="${f(op * 1000) / 1000}"/>`
-    }
-  }
-  return `<g fill="${hex(C.pearl)}">${out}</g>`
+/** الطوق: خيطٌ شعريّ يحيط بالصورة على بُعدٍ محسوب، وفي كلّ زاويةٍ معيّنٌ من الشعار يقف الخيطُ دونه بفُرجة —
+ *  كما تُقطع الخطوطُ عند العلامات في ألواح المسح. وفي منتصف كلّ ضلعٍ شَرطةٌ قصيرة تعامد الخيطَ: علامةُ محورٍ
+ *  تقيس ولا تزخرف. والمعيّنُ الذهبيّ وحده في الزاوية العليا اليمنى، حيث تبدأ القراءةُ العربيّة. */
+function chain(g, T) {
+  const off = P.chain * g.M, d = P.bead * g.M * P.corner, gap = d * 0.95, tick = P.bead * g.M * 1.5
+  const x0 = g.x - off, y0 = g.y - off, x1 = g.x + g.pw + off, y1 = g.y + g.ph + off
+  const sw = f(P.hair * g.W)
+  const line = (ax, ay, bx, by) => `<line x1="${f(ax)}" y1="${f(ay)}" x2="${f(bx)}" y2="${f(by)}"/>`
+  const lines = [
+    line(x0 + gap, y0, x1 - gap, y0), line(x0 + gap, y1, x1 - gap, y1),
+    line(x0, y0 + gap, x0, y1 - gap), line(x1, y0 + gap, x1, y1 - gap),
+  ]
+  const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2
+  const ticks = [
+    line(cx, y0 - tick / 2, cx, y0 + tick / 2), line(cx, y1 - tick / 2, cx, y1 + tick / 2),
+    line(x0 - tick / 2, cy, x0 + tick / 2, cy), line(x1 - tick / 2, cy, x1 + tick / 2, cy),
+  ]
+  const gem = (x, y, gold) => `<use href="#dm" x="${f(x - d / 2)}" y="${f(y - d / 2)}" width="${f(d)}" height="${f(d)}" fill="${gold ? hex(C.gold) : hex(T.bead)}" opacity="${gold ? 1 : T.gemOp}"/>`
+  const svg = `<g stroke="${hex(T.bead)}" stroke-opacity="${T.beadOp}" stroke-width="${sw}" stroke-linecap="square">${lines.join('')}${ticks.join('')}</g>` +
+    gem(x0, y0) + gem(x0, y1) + gem(x1, y1) + gem(x1, y0, true)
+  return { svg, bottom: y1 }
 }
 
-/** الصفحةُ كاملة لمقاسٍ واحد. `photo` مسارُ الصورة، و`cut` نافذةُ الاقتطاع، و`look` قراراتُ الضوء والتعتيم. */
-export function html(F, { photo, cut, look }) {
-  const { W, H } = F
-  const wv = wave(F)
-  const u = wv.u
-  const iw = W / cut.w, ih = H / cut.h
-  const ix = -cut.x * iw, iy = -cut.y * ih
-  const { crest } = wv
-  const dm = 1.9 * u // قطرُ المعيّن الذهبيّ
-  const gap = 2.1 * u // تباعدُ خطوط التموّج
-  const ripple = [0.9, 0.6, 0.34, 0.16].map((op, i) =>
-    `<path d="${wv.echo((i + 1) * gap * (1 + i * 0.18), 1 - (i + 1) * 0.16)}" stroke="url(#rg)" stroke-opacity="${op}" stroke-width="${f(0.19 * u)}" fill="none"/>`).join('')
-  const bandD = `${wv.d} L${W + 4} ${H + 4} L-4 ${H + 4} Z`
-  const scrimTop = wv.top - 24 * u
+/** الغشاء: تذهيبٌ بقدر `strength` — السطوعُ يُرسم على تدرّجٍ من ليل الهويّة إلى ذهبها إلى كريميّها،
+ *  ثم يُمزج بالصورة. والمستوياتُ قبله. */
+function veilFilter(lv, strength) {
+  const stops = [C.night, mix(mix(C.night, C.cream, 0.5), C.gold, 0.3), C.cream].map(ch)
+  const table = (k) => stops.map((c) => c[k]).join(' ')
+  const lin = `type="linear" slope="${lv.slope}" intercept="${lv.intercept}"`
+  return `<filter id="veil" color-interpolation-filters="sRGB" x="0" y="0" width="100%" height="100%">
+    <feComponentTransfer in="SourceGraphic" result="lv"><feFuncR ${lin}/><feFuncG ${lin}/><feFuncB ${lin}/></feComponentTransfer>
+    <feColorMatrix in="lv" type="matrix" result="lum" values="0.2126 0.7152 0.0722 0 0  0.2126 0.7152 0.0722 0 0  0.2126 0.7152 0.0722 0 0  0 0 0 1 0"/>
+    <feComponentTransfer in="lum" result="tone"><feFuncR type="table" tableValues="${table(0)}"/><feFuncG type="table" tableValues="${table(1)}"/><feFuncB type="table" tableValues="${table(2)}"/></feComponentTransfer>
+    <feComposite in="lv" in2="tone" operator="arithmetic" k1="0" k2="${f(1 - strength)}" k3="${f(strength)}" k4="0"/>
+  </filter>`
+}
 
-  // الشعار: يسارَ الموجة (والقمّةُ يمينًا) — وسطَ المسافة بين أخفض الحافّة فوقه وأسفلِ المساحة الآمنة
-  const logoW = 17 * u, logoH = (logoW * L.h) / L.w, logoX = 5.5 * u
-  let edge = -Infinity
-  for (let x = logoX; x <= logoX + logoW; x += 4) edge = Math.max(edge, wv.fy(x))
-  const floor = H - F.safeBottom
-  const logoY = edge + (floor - edge - logoH) / 2 + 0.2 * u
+/** الصفحةُ كاملة. `photo` مسارُ الصورة، و`g` هندسةُ اللوح، و`look` قراراتُ الضوء والغشاء، و`tone` نغمةُ اللوح. */
+export function html({ photo, g, look, tone }) {
+  const T = TONES[tone]
+  const { W, H } = g
+  const ring = chain(g, T)
+  const bv = P.bevel * W
+  const lw = P.logo * W, lh = (lw * L.h) / L.w
+  // الختم: وسطَ ما بين الطوق وأسفل اللوح، مرفوعًا قليلًا (المركزُ البصريّ فوق الهندسيّ)
+  const ly = ring.bottom + (H - ring.bottom - lh) * 0.47
 
   return `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><style>
 *{margin:0;padding:0;box-sizing:border-box}
-html,body{width:${W}px;height:${H}px;overflow:hidden;background:${hex(C.night)}}
+html,body{width:${W}px;height:${H}px;overflow:hidden;background:${hex(T.mat)}}
 body{position:relative}
-.ph{position:absolute;inset:0;overflow:hidden}
-.ph img{position:absolute;left:${f(ix)}px;top:${f(iy)}px;width:${f(iw)}px;height:${f(ih)}px;filter:url(#lv)}
-.vig{position:absolute;inset:0;background:radial-gradient(ellipse 78% 80% at 50% 40%,transparent 58%,${rgba(C.night, 0.3)} 100%)}
-.scrim{position:absolute;left:0;right:0;top:${f(scrimTop)}px;bottom:0;background:linear-gradient(to bottom,${rgba(C.night, 0)} 0%,${rgba(C.night, look.scrim * 0.55)} 55%,${rgba(C.night, look.scrim)} 100%)}
-.band{position:absolute;inset:0;clip-path:path('${bandD}');background:${rgba(C.night, 0.74)};backdrop-filter:blur(${f(1.4 * u)}px) saturate(1.1);-webkit-backdrop-filter:blur(${f(1.4 * u)}px)}
+.grain{position:absolute;inset:0;mix-blend-mode:${T.grain.blend};opacity:${T.grain.op}}
 svg.art{position:absolute;inset:0}
-.logo{position:absolute;left:${f(logoX)}px;top:${f(logoY)}px}
+.bevel{position:absolute;left:${f(g.x - bv)}px;top:${f(g.y - bv)}px;width:${f(g.pw + 2 * bv)}px;height:${f(g.ph + 2 * bv)}px;background:${hex(T.bevel)};box-shadow:0 0 0 .5px ${T.cut}}
+.ph{position:absolute;left:${f(g.x)}px;top:${f(g.y)}px;width:${f(g.pw)}px;height:${f(g.ph)}px;overflow:hidden}
+.ph img{display:block;width:100%;height:100%;filter:url(#veil)}
+.ph .vig{position:absolute;inset:0;background:radial-gradient(ellipse 80% 80% at 50% 45%,transparent 62%,${rgba(C.night, 0.14)} 100%)}
+.ph .inset{position:absolute;inset:0;box-shadow:inset 0 1px 2.5px ${rgba(C.night, 0.28)},inset 0 0 0 .5px ${rgba(C.night, 0.14)}}
+.seal{position:absolute;left:${f((W - lw) / 2)}px;top:${f(ly)}px}
 </style></head><body>
 <svg width="0" height="0" style="position:absolute"><defs>
-  <filter id="lv" color-interpolation-filters="sRGB"><feComponentTransfer>
-    <feFuncR type="linear" slope="${look.levels.slope}" intercept="${look.levels.intercept}"/>
-    <feFuncG type="linear" slope="${look.levels.slope}" intercept="${look.levels.intercept}"/>
-    <feFuncB type="linear" slope="${look.levels.slope}" intercept="${look.levels.intercept}"/>
-  </feComponentTransfer></filter>
+  ${veilFilter(look.levels, look.veil)}
+  <filter id="paper" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter>
 </defs></svg>
 
-<div class="ph"><img src="${photo}" alt=""><div class="vig"></div><div class="scrim"></div></div>
-<div class="band"></div>
+<svg class="grain" width="${W}" height="${H}"><rect width="100%" height="100%" filter="url(#paper)"/></svg>
 
 <svg class="art" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
-  <defs>
-    ${DIAMOND_SYMBOL}
-    <linearGradient id="rg" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="${W}" y2="0">
-      <stop offset="0" stop-color="${hex(C.pearl)}" stop-opacity="0"/>
-      <stop offset="${f((crest.x / W) * 0.55)}" stop-color="${hex(C.pearl)}" stop-opacity=".35"/>
-      <stop offset="${f(crest.x / W)}" stop-color="${hex(C.pearl)}" stop-opacity="1"/>
-      <stop offset="1" stop-color="${hex(C.pearl)}" stop-opacity=".25"/>
-    </linearGradient>
-    <linearGradient id="eg" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="${W}" y2="0">
-      <stop offset="0" stop-color="${hex(C.gold)}" stop-opacity=".18"/>
-      <stop offset="${f(crest.x / W)}" stop-color="${hex(C.gold)}" stop-opacity="1"/>
-      <stop offset="1" stop-color="${hex(C.gold)}" stop-opacity=".35"/>
-    </linearGradient>
-    <radialGradient id="glow" cx="${f(crest.x)}" cy="${f(crest.y)}" r="${f(dm * 4.2)}" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="${hex(C.gold)}" stop-opacity=".42"/><stop offset=".4" stop-color="${hex(C.gold)}" stop-opacity=".1"/><stop offset="1" stop-color="${hex(C.gold)}" stop-opacity="0"/>
-    </radialGradient>
-  </defs>
-  <g>${ripple}</g>
-  ${field(F, wv)}
-  <path d="${wv.d}" stroke="url(#eg)" stroke-width="${f(0.24 * u)}" fill="none"/>
-  <circle cx="${f(crest.x)}" cy="${f(crest.y)}" r="${f(dm * 4.2)}" fill="url(#glow)"/>
-  <circle cx="${f(crest.x)}" cy="${f(crest.y)}" r="${f(dm * 1.05)}" fill="none" stroke="${hex(C.gold)}" stroke-opacity=".7" stroke-width="${f(0.15 * u)}"/>
-  <use href="#dm" x="${f(crest.x - dm / 2)}" y="${f(crest.y - dm / 2)}" width="${f(dm)}" height="${f(dm)}" fill="${hex(C.gold)}"/>
+  <defs><symbol id="dm" viewBox="${b.x} ${b.y} ${b.w} ${b.h}"><path d="${LOGO.diamond}"/></symbol></defs>
+  ${ring.svg}
 </svg>
 
-<div class="logo">${LOCKUP(logoW)}</div>
+<div class="bevel"></div>
+<div class="ph"><img src="${photo}" alt=""><div class="vig"></div><div class="inset"></div></div>
+
+<div class="seal"><svg viewBox="${L.x} ${L.y} ${L.w} ${L.h}" width="${f(lw)}" height="${f(lh)}" role="img" aria-label="إذكاء" style="display:block">
+  <path d="${LOGO.name}" fill="${hex(T.ink)}"/><path d="${LOGO.dots}" fill="${hex(T.ink)}"/>
+  <path d="${LOGO.nameGold}" fill="${hex(C.gold)}"/><path d="${LOGO.diamond}" fill="${hex(C.gold)}"/></svg></div>
 </body></html>`
 }
