@@ -2,7 +2,7 @@
 // ═══ قالبُ صور إذكاء — المولِّد ═══
 // ملفُّ صور ← كلُّ صورةٍ كاملةً وعليها الهويّةُ بأحد ثلاثة أنماط، بعد أن تُقرأ (smart.mjs):
 //   تموج (frame.mjs) · زجاج (glass.mjs) · قصة (cut.mjs)
-// الاستعمال:  node src/build.mjs content/liqa-1.json [--out dist] [--style تموج,زجاج,قصة]
+// الاستعمال:  node src/build.mjs content/liqa-1.json [--out dist] [--style غلاف,توقيع,تذهيب,تموج,زجاج,قصة]
 
 import { createRequire } from 'node:module'
 import { readFileSync, writeFileSync, mkdirSync, mkdtempSync, rmSync } from 'node:fs'
@@ -12,6 +12,8 @@ import { tmpdir } from 'node:os'
 import { page as pageOf, html as ripple } from './frame.mjs'
 import { html as glass } from './glass.mjs'
 import { html as cut } from './cut.mjs'
+import * as cover from './cover.mjs'
+import { sign, goldTone } from './sign.mjs'
 import { read, corner, subjectMask, veil, levels } from './smart.mjs'
 
 const require = createRequire(import.meta.url)
@@ -26,8 +28,12 @@ const BASE = dirname(CONTENT)
 const doc = JSON.parse(readFileSync(CONTENT, 'utf8'))
 const OUT = resolve(opt('out') || resolve(BASE, '../dist'), doc.meta.file)
 mkdirSync(OUT, { recursive: true })
-const STYLES = { 'تموج': ripple, 'زجاج': glass, 'قصة': cut }
-const styles = (opt('style') || doc.meta.style || 'تموج').split(',')
+// النظام: غلاف (نافذةُ المعيّن) · توقيع (الصورةُ نقيّة) · تذهيب (معالجةُ الهويّة اللونيّة)؛ والأنماطُ الأولى باقيةٌ للاختيار
+const STYLES = {
+  'غلاف': cover, 'توقيع': { html: sign }, 'تذهيب': { html: goldTone },
+  'تموج': { html: ripple }, 'زجاج': { html: glass }, 'قصة': { html: cut },
+}
+const styles = (opt('style') || doc.meta.style || 'غلاف,توقيع,تذهيب').split(',')
 for (const st of styles) if (!STYLES[st]) throw new Error(`نمطٌ غيرُ معروف: «${st}» — المتاح: ${Object.keys(STYLES).join('، ')}`)
 
 const MIME = { '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp' }
@@ -44,10 +50,12 @@ for (const [i, p] of doc.photos.entries()) {
   const look = { veil: p.veil ?? veil(c), levels: levels(an) }
   const mask = subjectMask(an)
   for (const st of styles) {
-    const name = `${doc.meta.file}-${String(i + 1).padStart(2, '0')}${styles.length > 1 || st !== 'تموج' ? '-' + st : ''}.jpg`
+    const name = `${doc.meta.file}-${String(i + 1).padStart(2, '0')}-${st}.jpg`
+    const sp = STYLES[st].page ? STYLES[st].page(an) : pg
+    const lk = { ...look }
     const htmlFile = join(tmp, `${i}-${st}.html`)
-    writeFileSync(htmlFile, STYLES[st]({ photo: pathToFileURL(src).href, pg, c, mask, look }))
-    const ctx = await browser.newContext({ viewport: { width: pg.W, height: pg.H }, deviceScaleFactor: pg.dpr })
+    writeFileSync(htmlFile, STYLES[st].html({ photo: pathToFileURL(src).href, pg: sp, c, mask, look: lk, an }))
+    const ctx = await browser.newContext({ viewport: { width: sp.W, height: sp.H }, deviceScaleFactor: sp.dpr })
     const shot = await ctx.newPage()
     await shot.goto(pathToFileURL(htmlFile).href)
     await shot.evaluate(() => Promise.all([...document.images].map((im) => im.decode())))
@@ -55,13 +63,13 @@ for (const [i, p] of doc.photos.entries()) {
     await shot.screenshot({ path: join(OUT, name), type: 'jpeg', quality: 93 })
     await ctx.close()
 
-    const size = `${Math.round(pg.W * pg.dpr)}×${Math.round(pg.H * pg.dpr)}`
+    const size = `${Math.round(sp.W * sp.dpr)}×${Math.round(sp.H * sp.dpr)}`
     report.push({
       ملف: name, نمط: st, مقاس: size,
       زاوية: { اختيار: c.name, بـ: c.by, مركزُ_الموضوع: c.subject, المقارنة: c.all.map(({ name, busy, dist, lum }) => ({ name, حدّة: busy, بُعد: dist, سطوع: lum })) },
-      غشاء: look.veil, مستويات: look.levels,
+      غشاء: lk.veil, مستويات: lk.levels, ...(lk.ink ? { حبرُ_الشعار: lk.ink, سطوعُ_موضعه: lk.spot, ظلّ: lk.shade } : {}),
     })
-    console.log(`◆ ${name}  ${size}  الزاوية: ${c.name} (${c.by})  غشاء=${look.veil}`)
+    console.log(`◆ ${name}  ${size}  الزاوية: ${c.name}${lk.ink ? '  حبر=' + lk.ink + ' (سطوع ' + lk.spot + ')' : ''}`)
   }
 }
 

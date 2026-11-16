@@ -96,6 +96,10 @@ function mean(an, A, x, y, rw, rh) {
   return n ? s / n : 0
 }
 
+/** متوسّطُ السطوع في مستطيلٍ من الصورة (كسورٌ منها) — للتوقيع: أيُّ حبرٍ يُقرأ هنا؟ */
+export const regionMean = (an, x, y, rw, rh) =>
+  mean(an, an.L, Math.max(0, x), Math.max(0, y), Math.min(rw, 1 - Math.max(0, x)), Math.min(rh, 1 - Math.max(0, y)))
+
 /** القرارُ الأوّل — الزاوية: أقلُّها حدّةً وأبعدُها عن مركز ثقل الموضوع، وميلٌ خفيف إلى الأسفل
  *  (حيث يُتوقَّع الختم). `forced` اسمُ زاويةٍ مكتوب يتقدّم على الحساب. */
 export function corner(an, forced) {
