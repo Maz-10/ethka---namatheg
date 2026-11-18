@@ -67,8 +67,6 @@ export const chip = (a, label, pressed, extra = '') =>
 export const unk = (a, pressed) => chip(a, 'لا أعرف', pressed, 'unk')
 
 // ── المسار
-const WAIT_LEN = { none: 28, hours: 40, '1to3': 72, week: 112, gtweek: 150 }
-const WAIT_DOT = { none: 9, hours: 9, '1to3': 7, week: 6, gtweek: 5 }
 
 /** هيئةُ القيمة: المؤكَّدة عادية، والمستنتجة بنقطة، والمقترحة باهتة. */
 const look = (src) => (src === 'suggested' ? 'sug' : src === 'inferred' ? 'inf' : '')
@@ -91,7 +89,6 @@ export function marksOf(s, ctx) {
 export function trackHTML(task, mode, ctx) {
   const edit = mode === 'map' || mode === 'props'
   const stages = task.stages.filter((s) => edit || s.status !== 'no')
-  const tr = mode === 'reflect' ? C.transform(task) : new Map()
   const g = task.global
   const entryLabel = g.entry.length && !g.entry.includes(D.UNKNOWN) ? g.entry.map((e) => byId(D.ENTRY, e)?.label).join(' و') : task.entryHint
   const exitLabel = g.exit && g.exit !== D.UNKNOWN ? (g.exit === 'other' && g.exitOther ? g.exitOther : byId(D.EXIT, g.exit)?.label) : task.exitHint
@@ -102,49 +99,42 @@ export function trackHTML(task, mode, ctx) {
   let num = 0
   stages.forEach((s, i) => {
     if (s.status === 'no') {
-      html += gapHTML(null, null, i, edit, false, null, ctx)
+      html += gapHTML(null, null, i, edit, false, ctx)
       html += `<div class="folded" data-sid="${s.id}"><s>${esc(s.name)}</s><button class="btn link" data-a="st-restore:${s.id}">استرجعها</button></div>`
       return
     }
     num++
-    const t = tr.get(s.id)
-    html += gapHTML(s, prevActive, i, edit, i > 0 || !!entryLabel, t, ctx)
-    html += cardHTML(s, num, mode, t, ctx, clar.filter((q) => q.target.split('.')[0] === s.id))
+    html += gapHTML(s, prevActive, i, edit, i > 0 || !!entryLabel, ctx)
+    html += cardHTML(s, num, mode, ctx, clar.filter((q) => q.target.split('.')[0] === s.id))
     for (const d of task.decisions.filter((x) => x.after === s.id)) html += decHTML(d, task, edit)
     prevActive = s
   })
   if (edit) html += `<button class="plus end" data-a="add:${task.stages.length}">${icon('plus', 18)}أضف مرحلة في آخر المسار</button>`
   if (exitLabel) html += `${edit ? '' : '<div class="gap still" style="--len:28px"></div>'}<div class="end-pill"><span>النهاية</span><b>${esc(exitLabel)}</b></div>`
   const id = ctx.primary ? 'id="track"' : ''
-  return `<div class="track-wrap" ${ctx.primary ? 'id="track-wrap"' : ''}><div class="track ${mode === 'reflect' && ctx.after ? 'after' : ''}" ${id} data-mode="${mode}">${html}<svg class="arrows" aria-hidden="true"></svg></div></div>`
+  return `<div class="track-wrap" ${ctx.primary ? 'id="track-wrap"' : ''}><div class="track" ${id} data-mode="${mode}">${html}<svg class="arrows" aria-hidden="true"></svg></div></div>`
 }
 
-function gapHTML(s, prev, index, edit, show, t, ctx) {
+function gapHTML(s, prev, index, edit, show, ctx) {
   const plus = edit ? `<button class="plus" data-a="add:${index}" aria-label="أضف مرحلة هنا">${icon('plus', 16)}</button>` : ''
   if (!s || !show) return edit ? `<div class="gap still" style="--len:${index > 0 ? 32 : 20}px">${plus}</div>` : ''
-  const w = s.wait.v && !isUnknown(s.wait.v) ? s.wait.v : null
-  const len = w ? WAIT_LEN[w] : 32
-  const waitObj = byId(D.WAIT, w)
-  const tag = waitObj && waitObj.days >= 2 ? `<span class="wait-tag ${waitObj.days >= 5 ? 'long' : ''}">انتظار ${waitObj.label}</span>` : ''
   let hand = ''
   const pa = prev?.actor.v, sa = s.actor.v
   if (pa && sa && pa !== sa && !isUnknown(pa) && !isUnknown(sa)) {
     const ext = ctx.roleOf(pa)?.scope === 'external' || ctx.roleOf(sa)?.scope === 'external'
-    const slow = waitObj && waitObj.days >= 1
-    hand = `<span class="hand ${ext ? 'external' : ''} ${slow ? 'slow' : ''}" title="تنتقل المهمة هنا إلى يد أخرى">${icon('forward', 12, 'انتقال إلى يد أخرى')}</span>`
+    hand = `<span class="hand ${ext ? 'external' : ''}" title="تنتقل المهمة هنا إلى يد أخرى">${icon('forward', 12, 'انتقال إلى يد أخرى')}</span>`
   }
-  const lenAfter = t ? (t.merge ? 4 : t.waitTo === 'none' ? 20 : t.waitTo === 'hours' ? Math.min(len, 36) : len) : len
-  return `<div class="gap ${w ? '' : 'still'}" style="--len:${len}px;--len-after:${lenAfter}px;--dot:${w ? WAIT_DOT[w] : 9}px" ${t?.merge ? 'data-merged="1"' : ''}>${hand}${tag}${plus}</div>`
+  return `<div class="gap" style="--len:36px">${hand}${plus}</div>`
 }
 
-function cardHTML(s, num, mode, t, ctx, clar) {
+function cardHTML(s, num, mode, ctx, clar) {
   const role = ctx.roleOf(s.actor.v)
   const pending = s.status === 'pending'
   const edit = mode === 'map' || mode === 'props'
   const cls = ['card', s.status === 'sometimes' ? 'cond' : '', pending ? 'pending' : '', s.guide ? 'guide' : '',
     s.friction.v === 'often' ? 'hot' : '', ctx.selected === s.id ? 'selected' : '', ctx.grown === s.id ? 'grow' : ''].join(' ')
   const style = role ? `--actor:${role.color}` : ''
-  const attrs = t ? `data-tk="${t.kind}" data-merge="${t.merge ? 1 : 0}" style="${style};--fade:${t.fade ?? 0}"` : `style="${style}"`
+  const attrs = `style="${style}"`
   const ask = pending && edit ? `<div class="ask"><span class="lbl">هل تمرّون بها؟</span>
       ${chip('st-yes:' + s.id, 'نعم', false)}${chip('st-no:' + s.id, 'لا', false)}${chip('st-some:' + s.id, 'أحيانًا', false)}</div>` : ''
   const cond = s.status === 'sometimes' ? `<span class="cond-tag">${s.condition ? 'تحدث ' + esc(s.condition) : 'تحدث أحيانًا'}</span>` : ''
@@ -159,7 +149,6 @@ function cardHTML(s, num, mode, t, ctx, clar) {
     ${cond ? `<div class="marks">${cond}</div>` : ''}
     ${!pending && !s.guide ? `<div class="marks">${marksOf(s, ctx)}</div>` : ''}
     ${ask}${qs}
-    ${t ? `<span class="after-tag">${esc(t.rule)}</span>` : ''}
   </article>`
 }
 
@@ -216,47 +205,34 @@ export function numbersHTML(task, ctx) {
   const N = C.computeNumbers(task)
   const H = C.handoffs(task, ctx.customRoles || [])
   const hr = C.range(N.monthlyHours)
-  const cyc = C.approxDays(N.cycleDays)
-  const wd = C.approxDays(N.workDays)
+  const once = N.workHours > 0 ? Math.max(1, Math.round(N.workHours)) : null
   const rows = []
   rows.push(hr
     ? `<div class="led key"><dt>ساعات العمل في الشهر</dt><dd><b>${n(hr[0])}–${n(hr[1])}</b> ساعة<span>تمر المهمة بكم نحو ${count(N.times, NOUN.times)} في الشهر</span></dd></div>`
     : `<div class="led"><dt>ساعات العمل في الشهر</dt><dd class="missing">تحتاج جوابًا عن تكرار المهمة ومدة مراحلها</dd></div>`)
-  rows.push(cyc
-    ? `<div class="led"><dt>زمن المرة الواحدة</dt><dd><b>نحو ${n(cyc)}</b> ${cyc >= 3 && cyc <= 10 ? 'أيام عمل' : cyc > 10 ? 'يوم عمل' : cyc === 2 ? 'يوما عمل' : 'يوم عمل'}<span>من بدايتها إلى نهايتها</span></dd></div>`
-    : `<div class="led"><dt>زمن المرة الواحدة</dt><dd class="missing">يحتاج مدد العمل والانتظار</dd></div>`)
-  rows.push(N.ratio != null && N.cycleDays > 0
-    ? `<div class="led"><dt>نصيب العمل الفعلي منه</dt><dd><b>${pct(N.ratio)}</b><span>نحو ${count(wd, NOUN.daysAcc)} من العمل، والباقي انتظار</span></dd></div>`
-    : `<div class="led"><dt>نصيب العمل الفعلي منه</dt><dd class="missing">لم يُحسب بعد</dd></div>`)
-  const slow = H.slowest ? ctx.roleOf(H.slowest.toActor) : null
-  const hand = H.list.length
-    ? `تنتقل المهمة بين ${count(H.roles, NOUN.roles)} في ${count(H.list.length, NOUN.spots)}${slow ? `، وأطول انتظار يقع عند انتقالها إلى ${esc(slow.label)}` : ''}.`
-    : ''
-  const gaps = N.unknownWork + N.unknownWait
+  rows.push(once
+    ? `<div class="led"><dt>العمل في المرة الواحدة</dt><dd><b>${once === 1 ? 'نحو ساعة' : once === 2 ? 'نحو ساعتين' : 'نحو ' + n(once)}</b>${once > 2 ? (once <= 10 ? ' ساعات' : ' ساعة') : ''}<span>مجموع العمل الفعلي في مراحلها</span></dd></div>`
+    : `<div class="led"><dt>العمل في المرة الواحدة</dt><dd class="missing">يحتاج مدة العمل في المراحل</dd></div>`)
+  rows.push(`<div class="led"><dt>الانتقال بين الأيدي</dt><dd><b>${n(H.list.length)}</b> ${H.list.length >= 3 && H.list.length <= 10 ? 'مواضع' : 'موضعًا'}<span>بين ${count(Math.max(H.roles, 1), NOUN.roles)}</span></dd></div>`)
   return `<dl class="ledger">${rows.join('')}</dl>
     <p class="est-note">كل رقم هنا تقدير مبني على إجاباتك، ولذلك يُعرض نطاقًا أو قيمة تقريبية.</p>
-    ${hand ? `<p class="sentence">${hand}</p>` : ''}
-    ${gaps ? `<p class="small muted gap-note">لم تُحدَّد المدة في ${count(gaps, NOUN.spots)}، فلم تدخل الحساب، والأرقام أقل من حقيقتها بقدرها.</p>` : ''}`
+    ${N.unknownWork ? `<p class="small muted gap-note">لم تُحدَّد مدة العمل في ${count(N.unknownWork, NOUN.spots)}، فلم تدخل الحساب، والأرقام أقل من حقيقتها بقدرها.</p>` : ''}`
 }
 
 /** الملف القابل للطباعة. */
 export function printHTML(task, ctx) {
-  const N = C.computeNumbers(task); const hr = C.range(N.monthlyHours); const cyc = C.approxDays(N.cycleDays)
-  const tr = C.transform(task)
+  const N = C.computeNumbers(task); const hr = C.range(N.monthlyHours); const H = C.handoffs(task, ctx.customRoles || [])
   const rows = []
   C.activeStages(task).forEach((s, i) => {
-    const wait = byId(D.WAIT, s.wait.v)
-    if (wait && wait.days >= 2) rows.push(`<tr class="wait"><td></td><td colspan="5">انتظار ${wait.label}</td></tr>`)
     const role = ctx.roleOf(s.actor.v)
-    rows.push(`<tr><td class="n">${n(i + 1)}</td><td>${esc(s.name)}${s.status === 'sometimes' ? ' <span class="muted">(أحيانًا)</span>' : ''}</td><td>${role ? shape(role) + esc(role.label) : '—'}</td>
-      <td>${esc(s.channels.v.map((c) => byId(D.CHANNELS, c)?.label).filter(Boolean).join(' و') || '—')}</td><td>${byId(D.WORK, s.work.v)?.label || '—'}</td>
-      <td>${s.friction.v === 'often' ? 'كثيرًا' : s.friction.v === 'sometimes' ? 'أحيانًا' : '—'}</td></tr>`)
+    rows.push(`<tr><td class="n">${n(i + 1)}</td><td class="nm">${esc(s.name)}${s.status === 'sometimes' ? ' <span class="muted">(أحيانًا)</span>' : ''}</td><td data-l="من يتولاها">${role ? shape(role) + esc(role.label) : '—'}</td>
+      <td data-l="الوسيلة">${esc(s.channels.v.map((c) => byId(D.CHANNELS, c)?.label).filter(Boolean).join(' و') || '—')}</td><td data-l="العمل الفعلي">${byId(D.WORK, s.work.v)?.label || '—'}</td>
+      <td data-l="التعثر">${s.friction.v === 'often' ? 'كثيرًا' : s.friction.v === 'sometimes' ? 'أحيانًا' : '—'}</td></tr>`)
     for (const d of task.decisions.filter((x) => x.after === s.id)) {
       const back = task.stages.find((x) => x.id === d.back)
-      rows.push(`<tr class="dec"><td></td><td colspan="5">${esc(d.q)}${back ? ` وإلا رجعت إلى «${esc(back.name)}»` : d.out ? ` وإلا: ${esc(d.out)}` : ''}</td></tr>`)
+      rows.push(`<tr class="pr-dec"><td></td><td colspan="5">◇ ${esc(d.q)}${back ? ` وإلا رجعت إلى «${esc(back.name)}»` : d.out ? ` وإلا: ${esc(d.out)}` : ''}</td></tr>`)
     }
   })
-  const changes = C.activeStages(task).filter((s) => tr.get(s.id)).map((s) => `<li><b>${esc(s.name)}</b>: ${esc(tr.get(s.id).rule)}</li>`).join('')
   const date = new Intl.DateTimeFormat('ar-SA-u-nu-arab-ca-gregory', { dateStyle: 'long' }).format(new Date())
   return `<div class="pr">
     <div class="pr-head">${logo()}<div class="meta">${ctx.org ? esc(ctx.org) + ' · ' : ''}${date}</div></div>
@@ -264,11 +240,10 @@ export function printHTML(task, ctx) {
     <p class="sub">خريطة المهمة كما رسمتها الإدارة، مرحلةً مرحلة.</p>
     <div class="nums">
       <div><b>${hr ? `${n(hr[0])}–${n(hr[1])}` : '—'}</b><span>ساعة عمل في الشهر</span></div>
-      <div><b>${cyc ? `نحو ${n(cyc)}` : '—'}</b><span>يوم عمل للمرة الواحدة</span></div>
-      <div><b>${N.ratio != null ? pct(N.ratio) : '—'}</b><span>نصيب العمل الفعلي</span></div>
+      <div><b>${N.workHours ? `نحو ${n(Math.max(1, Math.round(N.workHours)))}` : '—'}</b><span>ساعة عمل للمرة الواحدة</span></div>
+      <div><b>${n(H.list.length)}</b><span>موضع انتقال بين الأيدي</span></div>
     </div>
     <table><thead><tr><th></th><th>المرحلة</th><th>من يتولاها</th><th>الوسيلة</th><th>العمل الفعلي</th><th>التعثر</th></tr></thead><tbody>${rows.join('')}</tbody></table>
-    ${changes ? `<h2>تصور أولي بعد التحويل</h2><ul>${changes}</ul>` : ''}
-    <p class="foot">الأرقام تقديرات مبنية على إجابات الإدارة، والتصور أولي وليس حلًّا، وتفصيله في الجلسة. · إذكاء</p>
+    <p class="foot">الأرقام تقديرات مبنية على إجابات الإدارة، وتفصيلها في الجلسة. · إذكاء</p>
   </div>`
 }

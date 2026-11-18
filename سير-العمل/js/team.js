@@ -58,7 +58,7 @@ function list() {
         ${d.links.length ? `<table class="links"><thead><tr><th>الجهة</th><th>الحالة</th><th>المتابعة</th><th>المهام</th><th>آخر نشاط</th></tr></thead><tbody>
           ${d.links.map((l) => `<tr><td><a href="#${l.token}" class="org">${esc(l.org)}${l.revoked ? ' <span class="tag">أُلغي</span>' : ''}</a></td>
             <td><a href="#${l.token}"><span class="tag ${l.status}">${STATUS[l.status]}</span></a></td>
-            <td><a href="#${l.token}">${FOLLOW[l.followup]}${l.bookings ? ' · طلب جلسة' : ''}</a></td>
+            <td><a href="#${l.token}">${FOLLOW[l.followup]}</a></td>
             <td><a href="#${l.token}">${n(l.completed)} من ${n(l.tasks)}</a></td>
             <td><a href="#${l.token}">${date(l.lastActivity)}</a></td></tr>`).join('')}
         </tbody></table>` : `<p class="empty-state">لا روابط بعد. أنشئ أول رابط لجهة من النموذج المجاور.</p>`}
@@ -102,7 +102,6 @@ function taskBlock(t, state, link) {
     ${R.trackHTML(t, 'view', c)}
     ${R.numbersHTML(t, c)}
     <dl class="kv">
-      <dt>السؤال الأخير</dt><dd>${esc(t.lastQ) || '—'}</dd>
       <dt>الأنظمة المستخدمة</dt><dd>${esc(t.systems) || '—'}</dd>
       <dt>السرية</dt><dd>${g.secret === 'yes' ? 'نعم' : g.secret === 'no' ? 'لا' : '—'}</dd>
       <dt>ما حُذف لحساسيته</dt><dd>${(t.redactions || []).length ? esc(t.redactions.map((x) => ({ person_name: 'اسم شخص', case_number: 'رقم قضية', party_name: 'اسم خصم', email: 'بريد', phone: 'رقم تواصل' }[x] || x)).join('، ')) : '—'}</dd>
@@ -146,7 +145,6 @@ function detail() {
         <div class="panel"><h2>الرابط</h2><div class="copy-row"><input class="input" readonly value="${esc(url)}" aria-label="رابط الجهة"><button class="btn ghost" data-a="copy:${esc(url)}">انسخ</button></div>
           <dl class="kv"><dt>الحالة</dt><dd>${STATUS[l.status]}</dd><dt>أُنشئ</dt><dd>${date(l.createdAt)}</dd><dt>آخر نشاط</dt><dd>${date(l.lastActivity)}</dd><dt>آخر خطوة</dt><dd>${SCREEN[l.lastStep] || '—'}</dd><dt>روابط الزملاء</dt><dd>${n(d.children.length)}${d.children.filter((c) => c.done).length ? `، أكمل منها ${n(d.children.filter((c) => c.done).length)}` : ''}</dd></dl>
           <div class="actions"><a class="btn ghost" href="/api/team/links/${l.token}/export" data-a="export:${l.token}">صدّر البيانات</a><button class="btn link" data-a="revoke:${l.revoked ? 0 : 1}">${l.revoked ? 'أعد تفعيل الرابط' : 'ألغِ الرابط'}</button></div></div>
-        <div class="panel" style="margin-top:14px"><h2>طلبات الجلسة</h2>${l.bookings.length ? l.bookings.map((b) => `<dl class="kv"><dt>التواصل</dt><dd dir="auto">${esc(b.contact)}</dd><dt>الاسم</dt><dd>${esc(b.name) || '—'}</dd><dt>الوقت الأنسب</dt><dd>${esc(b.time) || '—'}</dd><dt>ملاحظة</dt><dd>${esc(b.note) || '—'}</dd><dt>وصل</dt><dd>${date(b.at)}</dd></dl>`).join('<hr class="rule">') : '<p class="small muted">لا طلبات بعد.</p>'}</div>
       </aside>
     </div>
   </section></main>`

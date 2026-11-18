@@ -1,7 +1,7 @@
 // اختبارُ الحساب: يطابق جدول القيم في المواصفات (المحور الثاني).  التشغيل: node --test سير-العمل/test
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { computeNumbers, range, approxDays, handoffs, transform, monthlyTimes } from '../js/calc.js'
+import { computeNumbers, range, approxDays, handoffs, monthlyTimes } from '../js/calc.js'
 
 const st = (id, actor, work, wait, extra = {}) => ({
   id, name: extra.name || id, status: extra.status || 'yes', actor: { v: actor }, channels: { v: extra.channels || [] },
@@ -66,12 +66,4 @@ test('الانتقال بين الأيدي وأبطؤه', () => {
   assert.equal(H.slowest.toActor, 'dept')
   assert.equal(H.list[1].kind, 'org')
   assert.equal(H.list[0].kind, 'inside')
-})
-
-test('القيد يُبقي المرحلة «باقية لاشتراط»، والاعتماد يصير إلكترونيًّا', () => {
-  const task = { stages: [st('a', 'lawyer', 'lt1', 'none', { name: 'صياغة المذكرة' }), st('b', 'head', 'lt1', '1to3', { name: 'مراجعتها واعتمادها' }), st('c', 'top', 'lt1', 'none', { name: 'التوقيع', constraints: ['handsig'] })], decisions: [] }
-  const tr = transform(task)
-  assert.equal(tr.get('a').kind, 'draft')
-  assert.equal(tr.get('b').kind, 'approval')
-  assert.equal(tr.get('c').kind, 'locked')
 })

@@ -19,15 +19,15 @@ const ARRANGE_TIMEOUT = 20000
 const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches
 
 const ui = {
-  sheet: null, mode: 'now', search: '', toast: null, example: false, drag: null,
+  sheet: null, search: '', toast: null, example: false, drag: null,
   focusName: false, docPick: null, journey: null, roleDraft: null, confirmReset: false,
   caps: { arrange: false, transcribe: false }, recording: null,
-  bookingOpen: false, bookingSent: false, booking: null, shareLink: null, shareMsg: '',
+  shareLink: null, shareMsg: '',
 }
-const ctx = () => ({ roleOf, primary: true, selected: ui.sheet, grown: ui.grown, after: ui.mode === 'after', customRoles: state.roles, org: ORG })
+const ctx = () => ({ roleOf, primary: true, selected: ui.sheet, grown: ui.grown, customRoles: state.roles, org: ORG })
 
 // ── الترويسة: «الخطوة الثالثة من خمس»
-const STEP_OF = { pick: 1, map: 2, props: 3, task: 4, reflect: 5, final: 5 }
+const STEP_OF = { pick: 1, map: 2, props: 3, task: 4, reflect: 5 }
 
 function header() {
   const step = STEP_OF[state.screen]
@@ -150,7 +150,7 @@ function missingHint(t) {
     <button class="btn link" data-a="hint-no:${i}">لا</button></div>`
 }
 
-const stageDone = (s) => s.actor.v && s.work.v && s.wait.v && s.friction.v && s.actor.src !== 'suggested'
+const stageDone = (s) => s.actor.v && s.work.v && s.friction.v && s.actor.src !== 'suggested'
 
 function propsScreen() {
   const t = curTask()
@@ -216,11 +216,6 @@ function sheetHTML() {
   </div>
 
   <div class="q"><span class="ql">كم تستغرق من عمل فعلي؟</span>${evidence(s.work)}<div class="chips">${sing('work', D.WORK)}</div></div>
-
-  <div class="q"><span class="ql">كم تنتظر المهمة قبل أن تبدأ هذه المرحلة؟</span>
-    ${!state.seenWaitHint ? `<p class="ex">مثل: المذكرة جاهزة، لكنها تنتظر توقيع المدير ثلاثة أيام. فالانتظار غير مدة العمل.</p>` : ''}
-    ${evidence(s.wait)}
-    <div class="chips">${sing('wait', D.WAIT)}</div></div>
 
   <div class="q"><span class="ql">هل تتعطل المهمة هنا؟</span>${evidence(s.friction)}<div class="chips">${sing('friction', D.FRICTION)}</div></div>
   ${fr === 'sometimes' || fr === 'often' ? `<div class="q"><span class="ql">ما الذي يعطّلها غالبًا؟</span><div class="chips">${D.REASONS.map((r) => chip(`tog:${id}:reasons:${r.id}`, r.label, s.friction.reasons.includes(r.id))).join('')}${unk(`tog:${id}:reasons:${D.UNKNOWN}`, s.friction.reasons.includes(D.UNKNOWN))}</div></div>` : ''}
@@ -323,12 +318,8 @@ function crossTasks() {
 
 function reflectScreen() {
   const t = curTask()
-  const tr = C.transform(t)
   const act = C.activeStages(t)
-  const groups = new Map()
-  for (const s of act) { const r = tr.get(s.id); if (r) { if (!groups.has(r.rule)) groups.set(r.rule, { kind: r.kind, names: [] }); groups.get(r.rule).names.push(s.name) } }
-  const autoR = C.range(C.automatableHours(t))
-  const unknowns = act.filter((s) => [s.actor.v, s.work.v, s.wait.v, s.friction.v].some(isUnknown))
+  const unknowns = act.filter((s) => [s.actor.v, s.work.v, s.friction.v].some(isUnknown))
   const docs = [...new Set(act.flatMap((s) => [...s.docsIn, ...s.docsOut]))]
   const doc = ui.journey && docs.includes(ui.journey) ? ui.journey : docs[0]
   return `<section class="page wide">
@@ -336,17 +327,8 @@ function reflectScreen() {
       <h1>هذه مهمتك كما رسمتها</h1>
       ${R.legend(t, ctx())}
     </div>
-    <div class="toggle-row"><div class="seg" role="group" aria-label="عرض الخريطة">
-      <button data-a="mode:now" aria-pressed="${ui.mode === 'now'}">الآن</button>
-      <button data-a="mode:after" aria-pressed="${ui.mode === 'after'}">بعد التحويل</button></div></div>
     ${R.trackHTML(t, 'reflect', ctx())}
     <div class="reflect-head">
-      ${ui.mode === 'after' ? `<section class="changes" aria-live="polite"><h2>ما يتغير في التصور الأولي</h2><ul>
-        ${[...groups.entries()].map(([rule, g]) => `<li class="${g.kind === 'locked' ? 'locked' : ''}"><b>${esc(g.names.join('، و'))}</b>: ${esc(rule)}</li>`).join('')}
-        ${t.global.storage === 'none' ? `<li><b>حفظ الأثر بعد الانتهاء</b>: ${esc(C.RULES.library)}</li>` : ''}
-      </ul>
-      ${autoR ? `<p class="sentence">هذه المراحل تستهلك نحو ${n(autoR[0])}–${n(autoR[1])} ساعة في الشهر، وهي من النوع الذي تختصره الأتمتة عادة. وتفصيل ذلك في الجلسة.</p>` : ''}
-      <p class="est-note">تصور أولي مبني على قواعد معلنة من إجاباتك، وليس حلًّا.</p></section>` : ''}
       <h2 class="sec">أرقامها</h2>
       ${R.numbersHTML(t, ctx())}
       ${crossTasks()}
@@ -362,7 +344,7 @@ function reflectScreen() {
       </details>
     </div>
   </section>
-  <div class="bar"><div class="in"><button class="btn ghost" data-a="back:task">رجوع</button><button class="btn primary" data-a="to-final">التالي</button></div></div>`
+  <div class="bar"><div class="in"><button class="btn ghost" data-a="back:task">رجوع</button><button class="btn primary" data-a="finish">اكتملت المهمة</button></div></div>`
 }
 
 function journeyHTML(t, doc) {
@@ -380,46 +362,15 @@ function shareBox() {
     <div class="actions"><button class="btn ghost" data-a="share-copy">انسخ الرابط</button>${navigator.share ? `<button class="btn link" data-a="share-native">شاركه</button>` : ''}</div></div>`
 }
 
-function bookingForm() {
-  if (state.booking) {
-    return `<div class="booked" role="status">${icon('check', 20)}<p>${state.booking.queued ? 'حفظنا طلبك، ويصل إلى الفريق حين يعود الاتصال.' : state.booking.local ? 'حفظنا طلبك في هذا الجهاز. افتح الصفحة من الرابط الذي أرسله إليك فريق إذكاء ليصلهم.' : 'وصل طلبك إلى فريق إذكاء، وسيتواصل معك لتحديد موعد الجلسة.'}</p></div>`
-  }
-  const b = ui.booking || {}
-  return `<form class="booking" novalidate aria-labelledby="book-h">
-    <h2 id="book-h">احجز جلسة لمراجعة الخريطة</h2>
-    <p class="small muted">نراجعها معكم ونجيب عن أسئلتها. يصل هذا الطلب إلى فريق إذكاء وحده.</p>
-    <div class="q"><label class="ql" for="b-contact">رقم الجوال أو البريد</label>
-      <input id="b-contact" class="input" data-in="b:contact" value="${esc(b.contact || '')}" autocomplete="tel" dir="auto" ${b.err ? 'aria-invalid="true" aria-describedby="b-err"' : ''}>
-      ${b.err ? `<p class="field-err" id="b-err">${esc(b.err)}</p>` : ''}</div>
-    <div class="q"><label class="ql" for="b-name">الاسم <span class="muted">اختياري</span></label><input id="b-name" class="input" data-in="b:name" value="${esc(b.name || '')}" autocomplete="name"></div>
-    <div class="q"><span class="ql">الوقت الأنسب</span><div class="chips">${['صباحًا', 'ظهرًا', 'بعد العصر'].map((x) => chip('b-time:' + x, x, b.time === x)).join('')}</div></div>
-    <div class="q"><label class="ql" for="b-note">ملاحظة <span class="muted">اختيارية</span></label><textarea id="b-note" class="textarea short" data-in="b:note">${esc(b.note || '')}</textarea></div>
-    <div class="actions"><button class="btn primary" data-a="book-send">أرسل الطلب</button><button class="btn link" data-a="book-close">لاحقًا</button></div>
-  </form>`
-}
-
 function finalScreen() {
   const t = curTask()
-  if (!t.completed) {
-    return `<section class="page">
-      <p class="progress-line">سؤال أخير، ولك أن تتركه</p>
-      <h1 class="h-q">لو كان التغيير بيدك، ما أول شيء تغيّره في هذه المهمة؟</h1>
-      <div class="q"><label class="sr" for="lastq">جوابك</label><textarea id="lastq" class="textarea" data-in="lastQ" placeholder="جملة واحدة تكفي">${esc(t.lastQ)}</textarea>${voiceControls('lastQ')}</div>
-      <p class="small muted">لا شيء نهائي حتى تضغط «اكتملت المهمة»، ويمكنك الرجوع إلى أي خطوة قبلها.</p>
-    </section>
-    <div class="bar"><div class="in"><button class="btn ghost" data-a="back:reflect">رجوع</button><button class="btn primary" data-a="finish">اكتملت المهمة</button></div></div>`
-  }
-  return `<section class="page">
+  return `<section class="page done">
     <h1>شكرًا لك. وصلتنا خريطة «${esc(t.title)}»</h1>
-    <p class="lead">يدرسها فريق إذكاء قبل أن يقترح شيئًا. وهذه أربعة أفعال، كلها اختيارية.</p>
-    <ul class="closing" role="list">
-      <li><button class="act" data-a="print">${icon('print', 22)}<span><b>نزّل الخريطة</b><small>ملف أنيق قابل للطباعة</small></span></button></li>
-      <li><button class="act" data-a="book" aria-expanded="${ui.bookingOpen}">${icon('calendar', 22)}<span><b>احجز جلسة لمراجعتها</b><small>${state.booking ? 'وصلنا طلبك' : 'نراجعها معكم ونجيب عن أسئلتها'}</small></span></button></li>
-      <li><button class="act" data-a="another">${icon('add', 22)}<span><b>أضف مهمة أخرى</b><small>ولك أن تبدأ من هذه الخريطة إن تشابهتا</small></span></button></li>
-      <li><button class="act" data-a="share-task">${icon('send', 22)}<span><b>أرسل الرابط إلى زميل</b><small>ليرسم مهمة يعرف تفاصيلها</small></span></button></li>
-    </ul>
-    ${ui.bookingOpen ? bookingForm() : ''}
-    ${ui.shareLink && ui.shareLink.task ? shareBox() : ''}
+    <div class="actions">
+      <button class="btn primary" data-a="print">${icon('print', 18)}نزّل الخريطة</button>
+      <button class="btn ghost" data-a="another">${icon('add', 18)}أضف مهمة أخرى</button>
+    </div>
+    <div class="paper" aria-label="الخريطة كما تُطبع">${R.printHTML(t, ctx())}</div>
   </section>`
 }
 
@@ -615,8 +566,7 @@ function appendText(target, text) {
   const t = curTask()
   const [k, id] = target.split(':')
   update(() => {
-    if (k === 'lastQ') t.lastQ = [t.lastQ, text].filter(Boolean).join('\n')
-    else if (k === 'note') { const s = stageOf(t, id); s.note = [s.note, text].filter(Boolean).join('\n') }
+    if (k === 'note') { const s = stageOf(t, id); s.note = [s.note, text].filter(Boolean).join('\n') }
   })
 }
 
@@ -663,7 +613,6 @@ const ACTIONS = {
       const confirm = same && s[field].src && s[field].src !== 'user'
       if (field === 'friction') s.friction = { v: same && !confirm ? null : val, reasons: val === 'none' ? [] : s.friction.reasons, src: 'user' }
       else s[field] = { v: same && !confirm ? null : val, src: 'user' }
-      if (field === 'wait') st.seenWaitHint = true
     })
   },
   tog(id, field, val) {
@@ -740,20 +689,10 @@ const ACTIONS = {
     ACTIONS.walk()
   },
   'to-task'() { ui.sheet = null; go('task') },
-  'to-reflect'() { ui.mode = 'now'; go('reflect') },
-  'to-final'() { go('final') },
+  'to-reflect'() { go('reflect') },
   back(screen) { ui.sheet = null; go(screen) },
   g(field, val) { update(() => { const g = curTask().global; g[field] = g[field] === val ? null : val }) },
   gt(field, val) { update(() => { const g = curTask().global; g[field] = exclusive(g[field], val) }) },
-  mode(m) {
-    ui.mode = m
-    S.event('after-toggle', { mode: m })
-    const track = $('#track')
-    // التحوّلُ حركةٌ على الخريطة نفسِها، ثم تُستكمل الشاشة بما تغيّر
-    if (track) { track.classList.toggle('after', m === 'after'); [120, 400, 750].forEach((ms) => setTimeout(R.drawArrows, ms)) }
-    document.querySelectorAll('[data-a^="mode:"]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.a === 'mode:' + m))
-    setTimeout(render, reduced() ? 0 : 720)
-  },
   journey(d) { ui.journey = d; render() },
   finish() {
     update((s) => {
@@ -762,29 +701,10 @@ const ACTIONS = {
       t.final = { at: new Date().toISOString(), numbers: C.computeNumbers(t), handoffs: C.handoffs(t, s.roles) }
     })
     S.event('completed', { task: curTask().id })
-    scrollTo(0, 0)
+    go('final')
   },
   print() { S.event('print'); window.print() },
-  book() { ui.bookingOpen = !ui.bookingOpen; render(); $('#b-contact')?.focus() },
-  'book-close'() { ui.bookingOpen = false; render() },
-  'b-time'(x) { ui.booking = { ...(ui.booking || {}), time: ui.booking?.time === x ? '' : x }; render() },
-  async 'book-send'() {
-    const b = ui.booking || {}
-    const contact = (b.contact || '').trim()
-    const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact) || contact.replace(/[^\d٠-٩+]/g, '').length >= 9
-    if (!ok) { ui.booking = { ...b, err: 'اكتب رقم جوال أو بريدًا نصل به إليك.' }; render(); $('#b-contact')?.focus(); return }
-    const form = { contact, name: (b.name || '').trim(), time: b.time || '', note: (b.note || '').trim(), task: curTask()?.id }
-    const r = await S.booking(form)
-    update((s) => { s.booking = { at: new Date().toISOString(), queued: !!r?.queued, local: !!r?.local } }, { undoable: false })
-  },
   another() { ui.search = ''; update((s) => { s.cur = null; s.screen = 'pick' }, { undoable: false }); scrollTo(0, 0) },
-  async 'share-task'() {
-    if (!S.online()) return nativeShare(location.href)
-    const url = await createShare({ scope: 'org' })
-    if (!url) return toast('تعذّر إنشاء الرابط الآن، فحاول بعد قليل.')
-    ui.shareLink = { url, task: true }; ui.shareMsg = 'هذا رابط لزميلك، يرسم منه مهمة يعرف تفاصيلها، وتصلنا خريطته مع خرائطكم.'
-    render()
-  },
   async 'share-stage'(id) {
     const url = await createShare({ taskId: curTask().id, stageId: id })
     if (!url) return toast('تعذّر إنشاء الرابط الآن، فحاول بعد قليل.')
@@ -828,7 +748,6 @@ document.addEventListener('input', (e) => {
   if (k === 'search') { ui.search = v; return render() }
   if (k === 'role') { ui.roleDraft = v; return }
   if (k === 'doc') { ui.docPick.text = v; return }
-  if (k === 'b') { ui.booking = { ...(ui.booking || {}), [id]: v, err: id === 'contact' ? '' : ui.booking?.err }; return }
   const first = inputSnap !== key // الكتابةُ تُحفظ مع كل حرف، ولقطةُ التراجع مرّةً لكل حقل
   inputSnap = key
   update(() => {
@@ -838,7 +757,6 @@ document.addEventListener('input', (e) => {
     else if (k === 'note') stageOf(t, id).note = v
     else if (k === 'dq') t.decisions.find((d) => d.id === id).q = v
     else if (k === 'dout') t.decisions.find((d) => d.id === id).out = v
-    else if (k === 'lastQ') t.lastQ = v
     else if (k === 'systems') t.systems = v
     else if (['freqNum', 'seasonWhen', 'team', 'exitOther'].includes(k)) t.global[k] = v
   }, { undoable: first, render: false })
