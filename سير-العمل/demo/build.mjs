@@ -27,7 +27,7 @@ css += `
 writeFileSync(join(OUT, 'css/app.css'), css)
 cpSync(join(SRC, 'css/team.css'), join(OUT, 'css/team.css'))
 
-const bar = (here) => `<div class="demo-bar" role="note"><b>نسخة للتحقق</b><span>لا خادم هنا، فيُحاكى في متصفحك وتبقى البيانات فيه. ولتجربة الترتيب الذكي الصق «مثال الحكاية» في شاشة «احكِها بكلامك».</span><span class="sp"></span>${here === 'client' ? '<a href="team.html">لوحة الفريق</a>' : '<a href="index.html">صفحة العميل</a>'}<button type="button" onclick="try{Object.keys(localStorage).filter(function(k){return k.indexOf('ethka')===0}).forEach(function(k){localStorage.removeItem(k)})}catch(e){};location.hash='';location.reload()">امحُ بيانات العرض</button></div>`
+const bar = (here) => `<div class="demo-bar" role="note"><b>نسخة للتحقق</b><span>لا خادم هنا، فيُحاكى في متصفحك وتبقى البيانات فيه.</span><span class="sp"></span>${here === 'client' ? '<a href="team.html">لوحة الفريق</a>' : '<a href="index.html">صفحة العميل</a>'}<button type="button" onclick="try{Object.keys(localStorage).filter(function(k){return k.indexOf('ethka')===0}).forEach(function(k){localStorage.removeItem(k)})}catch(e){};location.hash='';location.reload()">امحُ بيانات العرض</button></div>`
 for (const [file, here] of [['index.html', 'client'], ['team.html', 'team']]) {
   let html = readFileSync(join(SRC, file), 'utf8')
     .replace(/(href|src)="\/(css|js|fonts)\//g, '$1="$2/')

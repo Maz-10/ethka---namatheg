@@ -6,7 +6,7 @@ import * as D from './data.js'
 import * as C from './calc.js'
 import * as R from './render.js'
 import * as S from './sync.js'
-import { stagesFromArranged, applyClarification } from './arrange.js'
+import { applyClarification } from './arrange.js'
 import {
   state, update, undo, canUndo, onChange, onSynced, curTask, roleOf, allRoles, ORG, setOrg, hydrate,
   makeStage, taskFromTemplate, blankTask, cloneTask, newId, resetAll, extraTemplates, allTemplates,
@@ -14,21 +14,20 @@ import {
 
 const { esc, n, chip, unk, shape, icon, count, NOUN, byId, isUnknown } = R
 const $ = (s, el = document) => el.querySelector(s)
-const words = (s) => (s.trim().match(/\S+/g) || []).length
 const ORD = ['الأولى', 'الثانية', 'الثالثة', 'الرابعة', 'الخامسة']
 const ARRANGE_TIMEOUT = 20000
 const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches
 
 const ui = {
-  sheet: null, mode: 'now', search: '', toast: null, guided: null, example: false, drag: null,
+  sheet: null, mode: 'now', search: '', toast: null, example: false, drag: null,
   focusName: false, docPick: null, journey: null, roleDraft: null, confirmReset: false,
-  caps: { arrange: false, transcribe: false }, arranging: null, speak: null, recording: null,
+  caps: { arrange: false, transcribe: false }, recording: null,
   bookingOpen: false, bookingSent: false, booking: null, shareLink: null, shareMsg: '',
 }
 const ctx = () => ({ roleOf, primary: true, selected: ui.sheet, grown: ui.grown, after: ui.mode === 'after', customRoles: state.roles, org: ORG })
 
 // ── الترويسة: «الخطوة الثالثة من خمس»
-const STEP_OF = { pick: 1, method: 1, story: 1, map: 2, props: 3, task: 4, reflect: 5, final: 5 }
+const STEP_OF = { pick: 1, map: 2, props: 3, task: 4, reflect: 5, final: 5 }
 
 function header() {
   const step = STEP_OF[state.screen]
@@ -51,13 +50,17 @@ function welcome() {
   const resume = state.tasks.length > 0
   return `<section class="page welcome">
     <div class="field-row" aria-hidden="true">${field}</div>
-    <h1>ارسم مهمة واحدة من عمل إدارتك، مرحلةً مرحلة</h1>
-    <p class="lead">تخرج بخريطة واضحة لهذه المهمة وتصور أولي لما يمكن أن تصير إليه. ونفهم نحن منها عملكم كما هو، قبل أن نقترح شيئًا.</p>
-    <dl class="facts">
-      <div><dt>المدة</dt><dd>نحو عشر دقائق للمهمة الواحدة</dd></div>
-      <div><dt>ما تفعله</dt><dd>تختار مهمة وتصحح مسودتها بلمسات</dd></div>
-      <div><dt>ما تخرج به</dt><dd>خريطة المهمة وأرقامها في ملف قابل للطباعة</dd></div>
-    </dl>
+    <h1>أهلًا بفريق الإدارة القانونية${ORG ? `<span class="org-name">في ${esc(ORG)}</span>` : ''}</h1>
+    <div class="statement">
+      <p>أعدّ فريق إذكاء هذه الصفحة لإدارتكم خاصة. ترسم فيها مهمة واحدة من عملكم مرحلةً مرحلة، كما تجري عندكم فعلًا، لا كما ينبغي أن تجري.</p>
+      <p>وتخرج منها بخريطة واضحة للمهمة، وتقدير لما تستهلكه من ساعات العمل وأيام الانتظار، وتصور أولي لما يمكن أن تصير إليه. ونفهم نحن منها عملكم قبل أن نقترح شيئًا.</p>
+    </div>
+    <ol class="how">
+      <li><b>تختار المهمة</b><span>من مهام الإدارة القانونية الشائعة، أو مهمة أخرى تبنيها بنفسك</span></li>
+      <li><b>تصحح مراحلها وخصائصها</b><span>بلمسات: هل تمرّون بها، ومن يتولاها، وكم تأخذ</span></li>
+      <li><b>ترى خريطتها وأرقامها</b><span>وتصورًا أوليًّا لها بعد التحويل، في ملف قابل للطباعة</span></li>
+    </ol>
+    <p class="duration">نحو عشر دقائق للمهمة الواحدة، ويُحفظ ما تدخله أولًا بأول.</p>
     <div class="trust">
       <h2 class="trust-h">قبل أن تبدأ</h2>
       <ul>
@@ -78,37 +81,22 @@ function welcome() {
 
 function pick() {
   const q = ui.search.trim()
-  const list = allTemplates().filter((t) => (q ? (t.title + ' ' + t.sub + ' ' + (t.keywords || '')).includes(q) : t.dept === state.dept))
+  const legal = allTemplates().filter((t) => t.dept === 'legal')
+  const list = q ? legal.filter((t) => (t.title + ' ' + t.sub + ' ' + (t.keywords || '')).includes(q)) : legal
   const prev = state.tasks.filter((t) => t.completed)
   return `<section class="page">
     <h1>أي مهمة تُتعبكم أكثر؟</h1>
     <p class="lead">ابدأ بها، فهي أوضح ما يُرسم وأنفع ما يُدرس.</p>
-    <div class="q">
-      <span class="ql" id="dept-l">الإدارة</span>
-      <div class="seg" role="group" aria-labelledby="dept-l">
-        ${D.DEPTS.map((d) => `<button data-a="dept:${d.id}" aria-pressed="${state.dept === d.id && !q}">${d.label}</button>`).join('')}
-      </div>
-    </div>
     <div class="q">
       <label class="ql" for="search">ابحث بكلمة، أو اختر من القائمة</label>
       <input id="search" class="input" type="search" data-in="search" value="${esc(ui.search)}" placeholder="مثل: عقد، وكالة، اعتراض" autocomplete="off">
     </div>
     <ul class="tpl-list" role="list">
       ${list.map((t) => `<li><button class="tpl" data-a="tpl:${t.id}"><span class="tx"><b>${esc(t.title)}</b><span>${esc(t.sub)}</span></span>${icon('forward', 18)}</button></li>`).join('')}
-      ${q && !list.length ? `<li class="empty">لا مهمة بهذه الكلمة في القائمة. اختر «مهمة أخرى» واحكها بكلامك.</li>` : ''}
-      <li><button class="tpl other" data-a="other"><span class="tx"><b>مهمة أخرى</b><span>ليست في القائمة؟ احكها بكلامك</span></span>${icon('forward', 18)}</button></li>
+      ${q && !list.length ? `<li class="empty">لا مهمة بهذه الكلمة في القائمة. اختر «مهمة أخرى» وابنِها بنفسك.</li>` : ''}
+      <li><button class="tpl other" data-a="other"><span class="tx"><b>مهمة أخرى</b><span>ليست في القائمة؟ ابنِها مرحلةً مرحلة</span></span>${icon('forward', 18)}</button></li>
     </ul>
     ${prev.length ? `<div class="q"><span class="ql">أو ابدأ من خريطة رسمتها</span><div class="chips">${prev.map((t) => chip('clone:' + t.id, esc(t.title), false)).join('')}</div><p class="hint">إن تشابهت المهمتان فتعديل الخريطة أسرع من رسمها من جديد.</p></div>` : ''}
-  </section>`
-}
-
-function method() {
-  return `<section class="page">
-    <h1>كيف ترسمها؟</h1>
-    <div class="twin">
-      <button class="choice" data-a="m-story"><h2>احكِها بكلامك</h2><p>كما تحكيها لزميل جديد. نرتّب كلامك مراحل، وتصحح ما لم نُصِب فيه.</p></button>
-      <button class="choice" data-a="m-tpl"><h2>ابدأ من قالب</h2><p>مسودة لهذه المهمة كما تجري في جهات كثيرة، تمر على مراحلها وتجيب عن كل منها بلمسة.</p></button>
-    </div>
   </section>`
 }
 
@@ -118,52 +106,7 @@ function voiceControls(target) {
   return `<div class="voice">${rec
     ? `<button class="btn ghost rec" data-a="rec-stop">${icon('stop', 18)}أوقف التسجيل <span class="timer" id="rec-timer">٠:٠٠</span></button>`
     : `<button class="btn ghost" data-a="rec:${target}">${icon('mic', 18)}سجّل بصوتك</button>`}
-    <span class="small muted">${target === 'story' ? 'حتى ثلاث دقائق للمقطع، ولك أن تسجّل أكثر من مقطع' : 'حتى دقيقة واحدة'}</span></div>`
-}
-
-function story() {
-  const t = curTask()
-  const g = ui.guided
-  if (ui.arranging) {
-    return `<section class="page">
-      <h1>نرتّب كلامك</h1>
-      <p class="lead" aria-live="polite">${ui.arranging.slow ? 'يأخذ الترتيب وقتًا أطول من المعتاد. إن لم يكتمل بعد لحظات عرضنا عليك أقرب مسودة، وحكايتك محفوظة.' : 'نحوّل حكايتك إلى مراحل، ولا نضيف إليها شيئًا لم تقله.'}</p>
-      <div class="growing" aria-hidden="true">${Array.from({ length: 5 }, (_, i) => `<span style="--i:${i}"></span>`).join('')}</div>
-    </section>`
-  }
-  if (g) {
-    return `<section class="page">
-      <p class="progress-line">سؤال ${n(g.i + 1)} من ${n(D.PROMPTS.length)}</p>
-      <h1 class="h-q">${esc(D.PROMPTS[g.i])}</h1>
-      <p class="lead">كلامك أقل من أن نرتّبه. أجب بجملة أو جملتين، أو تجاوز السؤال.</p>
-      <div class="q"><label class="sr" for="guided">${esc(D.PROMPTS[g.i])}</label><textarea id="guided" class="textarea short" data-in="guided">${esc(g.answers[g.i] || '')}</textarea></div>
-      <div class="actions">
-        <button class="btn primary" data-a="g-next">${g.i < D.PROMPTS.length - 1 ? 'السؤال التالي' : 'رتّب كلامي'}</button>
-        <button class="btn ghost" data-a="g-skip">لا أعرف</button>
-      </div>
-    </section>`
-  }
-  const wc = words(t.story || '')
-  return `<section class="page">
-    <h1>احكِها كما تحكيها لزميل جديد</h1>
-    <p class="lead">من أولها إلى آخرها بكلامك المعتاد، ولا يلزم ترتيب ولا فصاحة.</p>
-    <div class="q">
-      <label for="story" class="sr">حكاية المهمة</label>
-      <textarea id="story" class="textarea tall" data-in="story" placeholder="يبدأ الأمر حين…">${esc(t.story || '')}</textarea>
-      <div class="field-foot"><p class="privacy">لا حاجة لذكر أسماء الأشخاص أو تفاصيل القضايا، يكفي وصف الإجراء.</p><span class="count" aria-live="polite">${wc ? count(wc, NOUN.words) : ''}</span></div>
-      ${voiceControls('story')}
-    </div>
-    <div class="q">
-      <span class="ql">أسئلة تعينك، ولا يلزم ترتيبها</span>
-      <ul class="prompts">${D.PROMPTS.map((p) => `<li>${p}</li>`).join('')}</ul>
-      <details class="example"><summary>مثال على مستوى الحكاية المطلوب</summary><p>${esc(D.STORY_EXAMPLE)}</p></details>
-    </div>
-    ${S.online() ? `<label class="consent"><input type="checkbox" data-in="keepStory" ${t.keepStory ? 'checked' : ''}><span>أوافق على حفظ كلامي الأصلي لتحسين الترتيب. إن لم أوافق حُذف بعد ترتيبه وبقيت الخريطة.</span></label>` : ''}
-    <div class="actions">
-      <button class="btn primary" data-a="story-go">رتّب كلامي</button>
-      ${t.templateId ? `<button class="btn link" data-a="m-tpl">أفضّل البدء من القالب</button>` : ''}
-    </div>
-  </section>`
+    <span class="small muted">حتى دقيقة واحدة</span></div>`
 }
 
 function mapScreen() {
@@ -179,36 +122,19 @@ function mapScreen() {
   return `<section class="page wide">
     <div class="canvas-head">
       <h1 class="banner">${banner}</h1>
+      ${t.source === 'blank' ? `<label class="ql title-l" for="task-title">اسم المهمة <span class="muted">اختياري</span></label><input id="task-title" class="input" data-in="title" value="${esc(t.title === 'مهمة أخرى' ? '' : t.title)}" placeholder="مثل: الرد على التظلمات">` : ''}
       ${t.story ? `<details class="story-box"><summary>${t.source === 'arranged' ? 'النص كما فهمناه' : 'حكايتك كما كتبتها'}</summary><p>${esc(t.story)}</p></details>` : ''}
       <p class="rule-line">المرحلة الواحدة: ما يُنجَز دون أن ينتقل الملف إلى يد أخرى أو ينتظر.</p>
       <p class="help">المس أي مرحلة لتعديلها، واسحبها من مقبضها لتغيير ترتيبها، وأضف بين أي مرحلتين بعلامة +.</p>
       ${t.source === 'arranged' ? `<p class="help">القيمة ذات النقطة استنتجناها من كلامك، والمس المرحلة لترى شاهدها. والباهتة مقترحة تنتظر تأكيدك.</p>` : ''}
     </div>
     ${R.trackHTML(t, 'map', ctx())}
-    ${speakPanel()}
     ${missingHint(t)}
   </section>
   <div class="bar"><div class="in">
     <span class="note">${pending ? `بقيت ${count(pending, NOUN.stages)} دون جواب` : 'المراحل جاهزة'}</span>
     <button class="btn primary" data-a="to-props">${pending ? 'هكذا عندنا، تابع' : 'تابع إلى الخصائص'}</button>
   </div></div>`
-}
-
-/** «أضف بالكلام»: مرحلة أو أكثر في موضع معيّن، إن أتاح الخادم الترتيب. */
-function speakPanel() {
-  if (!ui.caps.arrange || !S.online()) return ''
-  const sp = ui.speak
-  if (!sp) return `<div class="speak-open"><button class="btn link" data-a="speak-open">أضف مراحل بكلامك</button></div>`
-  const t = curTask()
-  const act = C.activeStages(t)
-  return `<div class="speak" role="group" aria-labelledby="speak-l">
-    <span class="ql" id="speak-l">أين تقع هذه المراحل؟</span>
-    <div class="chips">${chip('speak-at:0', 'في البداية', sp.at === 0)}${act.map((s) => chip(`speak-at:${t.stages.indexOf(s) + 1}`, 'بعد «' + esc(s.name) + '»', sp.at === t.stages.indexOf(s) + 1)).join('')}</div>
-    <label class="ql" for="speak">احكِ ما يحدث في هذا الموضع</label>
-    <textarea id="speak" class="textarea short" data-in="speak">${esc(sp.text)}</textarea>
-    ${sp.error ? `<p class="field-err">${esc(sp.error)}</p>` : ''}
-    <div class="actions"><button class="btn primary" data-a="speak-go" ${sp.busy ? 'disabled' : ''}>${sp.busy ? 'نرتّب كلامك…' : 'أضفها إلى المسار'}</button><button class="btn link" data-a="speak-close">إلغاء</button></div>
-  </div>`
 }
 
 function missingHint(t) {
@@ -524,7 +450,7 @@ function exampleView() {
     <header class="top">${R.logo()}<span class="org">مثال لجهة افتراضية</span><span class="sp"></span><button class="icon-btn" data-a="close-ex">${icon('close', 18)}<span>أغلق المثال</span></button></header>
     <main><section class="page wide">
       <div class="canvas-head"><h1 id="ex-h" class="banner">دعوى مقامة على الجهة، كما رسمتها إدارة افتراضية</h1>
-      <p class="help">لون حد البطاقة يدل على من يتولاها، والفاصل بين البطاقات يطول بقدر الانتظار، والسهم المنحني رجوع إلى مرحلة سابقة.</p>${R.legend(t, c)}</div>
+      <p class="help">الشكل الملون بجانب المنفّذ يدل على من يتولاها، والفاصل بين البطاقات يطول بقدر الانتظار، والسهم المنحني رجوع إلى مرحلة سابقة.</p>${R.legend(t, c)}</div>
       ${R.trackHTML(t, 'view', c)}
       <div class="reflect-head">${R.numbersHTML(t, c)}
       <div class="actions"><button class="btn primary" data-a="close-ex-start">ابدأ مهمتك</button></div></div>
@@ -533,7 +459,7 @@ function exampleView() {
 
 // ════════════ الرسم ════════════
 
-const SCREENS = { welcome, pick, method, story, map: mapScreen, props: propsScreen, task: taskScreen, reflect: reflectScreen, final: finalScreen }
+const SCREENS = { welcome, pick, map: mapScreen, props: propsScreen, task: taskScreen, reflect: reflectScreen, final: finalScreen }
 
 function render() {
   const sheetEl = $('#sheet')
@@ -544,6 +470,7 @@ function render() {
   const caret = active && 'selectionStart' in active ? active.selectionStart : null
 
   if (!curTask() && !['welcome', 'pick'].includes(state.screen)) state.screen = 'pick'
+  if (!SCREENS[state.screen]) state.screen = curTask() ? 'map' : 'pick' // شاشاتٌ أُلغيت من نسخٍ سابقة
   $('#app').innerHTML = header() + `<main id="main">${SCREENS[state.screen]()}</main>`
   const t = curTask()
   $('#print').innerHTML = t && ['reflect', 'final'].includes(state.screen) ? R.printHTML(t, ctx()) : ''
@@ -595,52 +522,6 @@ function openStage(id) {
   if (el) el.scrollIntoView({ block: 'center', inline: 'center', behavior: reduced() ? 'auto' : 'smooth' })
 }
 
-/** أقربُ قالبٍ إلى الحكاية بالكلمات الدالّة — البديلُ إن تعذّر الترتيب. */
-function nearestTemplate(text) {
-  let best = null; let score = 0
-  for (const t of allTemplates()) {
-    const sc = (t.keywords || '').split(' ').reduce((a, k) => a + (k && text.includes(k) ? 1 : 0), 0)
-    if (sc > score) { score = sc; best = t }
-  }
-  return score >= 2 ? best : null
-}
-
-function fallbackFromStory() {
-  update((s) => {
-    const t = curTask()
-    const tpl = (t.templateId && allTemplates().find((x) => x.id === t.templateId)) || nearestTemplate(t.story)
-    const keep = { id: t.id, story: t.story, title: t.title, keepStory: t.keepStory }
-    Object.assign(t, tpl ? taskFromTemplate(tpl.id) : blankTask(t.title), keep, { source: tpl ? 'story-fallback' : 'story-guide' })
-    s.screen = 'map'
-  })
-}
-
-async function arrangeStory() {
-  const t = curTask()
-  if (!ui.caps.arrange || !S.online()) return fallbackFromStory()
-  ui.arranging = { slow: false }; render()
-  const slowTimer = setTimeout(() => { if (ui.arranging) { ui.arranging.slow = true; render() } }, 10000)
-  let out = null
-  try {
-    const r = await S.arrange({ story: t.story, dept: state.dept, templateId: t.templateId, taskId: t.id, keepStory: t.keepStory }, ARRANGE_TIMEOUT)
-    out = r.result || null
-  } catch { out = null }
-  clearTimeout(slowTimer)
-  ui.arranging = null
-  if (!out || !out.stages?.length) return fallbackFromStory()
-  const { stages, decisions, clarifications, newRoles } = stagesFromArranged(out, state.roles)
-  update((s) => {
-    s.roles.push(...newRoles)
-    Object.assign(t, {
-      source: 'arranged', stages, decisions, clarifications, arranged: out,
-      title: out.task_title || t.title, entryHint: out.entry_trigger?.text || '', exitHint: out.exit_condition?.text || '',
-    })
-    if (out.monthly_frequency?.value) t.global.freq = out.monthly_frequency.value
-    s.screen = 'map'
-  })
-  if (out.other_tasks?.length) toast('حكيت أكثر من مهمة، فبدأنا بالأولى. أضف الأخرى بعد إكمال هذه.')
-}
-
 function addStage(index) {
   const t = curTask()
   const st = makeStage('مرحلة جديدة')
@@ -687,17 +568,6 @@ function setStatus(id, v) {
   if (v === 'sometimes' && ui.sheet !== id) openStage(id)
 }
 
-function guidedStep(skip) {
-  const g = ui.guided
-  if (skip) g.answers[g.i] = ''
-  if (g.i < D.PROMPTS.length - 1) { g.i++; return render() }
-  const t = curTask()
-  const extra = g.answers.map((a, i) => (a && a.trim() ? `${D.PROMPTS[i]} ${a.trim()}` : '')).filter(Boolean).join('\n')
-  update(() => { t.story = [t.story, extra].filter((x) => x && x.trim()).join('\n') })
-  ui.guided = null
-  arrangeStory()
-}
-
 async function createShare(body) {
   try {
     const r = await S.share(body)
@@ -712,7 +582,7 @@ async function startRecording(target) {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
     const rec = new MediaRecorder(stream)
     const chunks = []
-    const limit = target === 'story' ? 180 : 60
+    const limit = 60
     const started = Date.now()
     rec.ondataavailable = (e) => chunks.push(e.data)
     rec.onstop = async () => {
@@ -745,8 +615,7 @@ function appendText(target, text) {
   const t = curTask()
   const [k, id] = target.split(':')
   update(() => {
-    if (k === 'story') t.story = [t.story, text].filter(Boolean).join('\n')
-    else if (k === 'lastQ') t.lastQ = [t.lastQ, text].filter(Boolean).join('\n')
+    if (k === 'lastQ') t.lastQ = [t.lastQ, text].filter(Boolean).join('\n')
     else if (k === 'note') { const s = stageOf(t, id); s.note = [s.note, text].filter(Boolean).join('\n') }
   })
 }
@@ -767,24 +636,12 @@ const ACTIONS = {
   'close-ex-start'() { ui.example = false; go('pick') },
   undo() { undo(); ui.toast = null; render() },
   dept(id) { ui.search = ''; update((s) => { s.dept = id }, { undoable: false }) },
-  tpl(id) { update((s) => { const t = taskFromTemplate(id); s.tasks.push(t); s.cur = t.id; s.screen = 'method' }); S.event('task', { template: id }) },
-  other() { update((s) => { const t = blankTask('مهمة أخرى'); s.tasks.push(t); s.cur = t.id; s.screen = 'story' }); S.event('task', { template: null }) },
+  tpl(id) { update((s) => { const t = taskFromTemplate(id); s.tasks.push(t); s.cur = t.id; s.screen = 'map' }); S.event('task', { template: id }) },
+  other() { update((s) => { const t = blankTask('مهمة أخرى'); s.tasks.push(t); s.cur = t.id; s.screen = 'map' }); S.event('task', { template: null }) },
   clone(id) {
     const src = state.tasks.find((t) => t.id === id)
     update((s) => { const t = cloneTask(src, 'مهمة جديدة من خريطة «' + src.title + '»'); s.tasks.push(t); s.cur = t.id; s.screen = 'map' })
   },
-  'm-story'() { go('story') },
-  'm-tpl'() {
-    const t = curTask()
-    if (t.templateId && t.source !== 'template') update(() => { Object.assign(t, taskFromTemplate(t.templateId), { id: t.id, story: t.story }) })
-    go('map')
-  },
-  'story-go'() {
-    if (words(curTask().story || '') < 30) { ui.guided = { i: 0, answers: [] }; return render() }
-    arrangeStory()
-  },
-  'g-next'() { guidedStep(false) },
-  'g-skip'() { guidedStep(true) },
   'st-yes'(id) { setStatus(id, 'yes') },
   'st-no'(id) { setStatus(id, 'no') },
   'st-some'(id) { setStatus(id, 'sometimes') },
@@ -877,21 +734,6 @@ const ACTIONS = {
     update(() => { t.stages.splice(at, 0, st); t.dismissed = [...(t.dismissed || []), Number(i)] })
   },
   'hint-no'(i) { update(() => { const t = curTask(); t.dismissed = [...(t.dismissed || []), Number(i)] }) },
-  'speak-open'() { ui.speak = { at: curTask().stages.length, text: '' }; render(); $('#speak')?.focus() },
-  'speak-close'() { ui.speak = null; render() },
-  'speak-at'(i) { ui.speak.at = Number(i); render() },
-  async 'speak-go'() {
-    const sp = ui.speak; const t = curTask()
-    if (words(sp.text) < 4) { sp.error = 'اكتب جملة كاملة على الأقل عما يحدث في هذا الموضع.'; return render() }
-    sp.busy = true; sp.error = ''; render()
-    let out = null
-    try { out = (await S.arrange({ story: sp.text, dept: state.dept, insert: true, context: C.activeStages(t).map((s) => s.name) }, ARRANGE_TIMEOUT)).result } catch {}
-    if (!out?.stages?.length) { sp.busy = false; sp.error = 'لم نتمكن من ترتيب هذا الكلام الآن. أضف المرحلة بعلامة + واكتب اسمها.'; return render() }
-    const r = stagesFromArranged(out, state.roles)
-    ui.grown = r.stages[0].id
-    ui.speak = null
-    update((s) => { s.roles.push(...r.newRoles); t.stages.splice(sp.at, 0, ...r.stages); t.decisions.push(...r.decisions) })
-  },
   'to-props'() {
     update((s) => { for (const st of curTask().stages) if (st.status === 'pending') st.status = 'yes'; s.screen = 'props' })
     ui.sheet = null
@@ -986,14 +828,11 @@ document.addEventListener('input', (e) => {
   if (k === 'search') { ui.search = v; return render() }
   if (k === 'role') { ui.roleDraft = v; return }
   if (k === 'doc') { ui.docPick.text = v; return }
-  if (k === 'guided') { ui.guided.answers[ui.guided.i] = v; return }
-  if (k === 'speak') { ui.speak.text = v; return }
   if (k === 'b') { ui.booking = { ...(ui.booking || {}), [id]: v, err: id === 'contact' ? '' : ui.booking?.err }; return }
   const first = inputSnap !== key // الكتابةُ تُحفظ مع كل حرف، ولقطةُ التراجع مرّةً لكل حقل
   inputSnap = key
   update(() => {
-    if (k === 'story') t.story = v
-    else if (k === 'keepStory') t.keepStory = v
+    if (k === 'title') t.title = v.trim() || 'مهمة أخرى'
     else if (k === 'name') { const st = stageOf(t, id); st.name = v; st.guide = false }
     else if (k === 'cond') stageOf(t, id).condition = v
     else if (k === 'note') stageOf(t, id).note = v
@@ -1003,7 +842,6 @@ document.addEventListener('input', (e) => {
     else if (k === 'systems') t.systems = v
     else if (['freqNum', 'seasonWhen', 'team', 'exitOther'].includes(k)) t.global[k] = v
   }, { undoable: first, render: false })
-  if (k === 'story') { const c = $('.count'); if (c) c.textContent = words(v) ? count(words(v), NOUN.words) : '' }
   if (['name', 'cond', 'dq', 'dout'].includes(k)) {
     // تحديثُ البطاقة دون إعادة رسم اللوحة، حتى لا يضيع موضعُ المؤشّر
     const keep = $('#track-wrap')?.scrollLeft

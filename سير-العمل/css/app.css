@@ -129,10 +129,17 @@ p { margin: 0; text-wrap: pretty; }
 .field-row i { width: 7px; height: 7px; transform: rotate(45deg); background: var(--line2); border-radius: 1px; display: block; }
 .field-row i.g { background: var(--gold); }
 .welcome h1 { font-size: var(--t-display); line-height: 1.35; }
-.facts { margin: 28px 0; border-top: 1px solid var(--line); }
-.facts div { display: grid; grid-template-columns: 7.5rem 1fr; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--line); align-items: baseline; }
-.facts dt { font-size: var(--t-small); color: var(--ink2); }
-.facts dd { margin: 0; }
+.welcome .org-name { display: block; color: var(--gold-ink); }
+.statement { margin-top: 18px; max-width: 58ch; }
+.statement p { color: var(--ink2); font-size: 1.125rem; line-height: 1.85; }
+.statement p + p { margin-top: 10px; }
+.how { list-style: none; counter-reset: how; margin: 32px 0 0; padding: 0; border-top: 1px solid var(--ink); }
+.how li { counter-increment: how; display: grid; grid-template-columns: 2.5rem 1fr; column-gap: 8px; padding: 14px 0; border-bottom: 1px solid var(--line); }
+.how li::before { content: counter(how, arabic-indic); grid-row: span 2; font-family: var(--head); font-size: 1.5rem; line-height: 1.2; color: var(--gold-ink); }
+.how b { font-weight: 500; }
+.how span { color: var(--ink2); font-size: var(--t-small); }
+.duration { margin: 16px 0 28px; font-size: var(--t-small); color: var(--ink2); }
+.title-l { display: flex; gap: 8px; margin: 18px 0 8px; font-weight: 500; font-size: var(--t-small); }
 .trust { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 18px 20px; font-size: var(--t-small); color: var(--ink2); }
 .trust-h { font-family: var(--font); font-weight: 500; font-size: var(--t-body); color: var(--ink); }
 .trust ul { margin: 6px 0 0; padding: 0; list-style: none; }
@@ -289,7 +296,7 @@ details[open] > summary::before { transform: rotate(-135deg); margin-top: 4px; }
 /* بطاقةُ المرحلة — لونُ حدّها من يتولاها (يطلبه الموجز صراحة) */
 .card {
   position: relative; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r);
-  border-inline-start: 4px solid var(--actor, var(--line2)); padding: 12px 14px 12px 10px; width: 100%; text-align: start;
+  padding: 12px 14px; width: 100%; text-align: start;
   transition: opacity .6s var(--ease), transform .6s var(--ease), max-height .7s var(--ease), padding .6s var(--ease), border-color .3s, background .3s, box-shadow .2s;
   max-height: 900px; overflow: hidden;
 }
@@ -306,7 +313,7 @@ details[open] > summary::before { transform: rotate(-135deg); margin-top: 4px; }
 .card .marks .faint { font-style: normal; opacity: .85; }
 .card .marks .sug { opacity: .6; }
 .card .marks .inf::after { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--gold); }
-.card.cond { border-style: dashed; border-inline-start-style: solid; }
+.card.cond { border-style: dashed; }
 .card .cond-tag { font-size: var(--t-meta); color: var(--ink2); border: 1px dashed var(--ink3); border-radius: 999px; padding: 0 10px; }
 .card .fric { color: var(--warm); }
 .card .fric.soft { color: var(--ink2); }
@@ -315,7 +322,7 @@ details[open] > summary::before { transform: rotate(-135deg); margin-top: 4px; }
 .card .clar { flex-direction: column; align-items: flex-start; border-top: 1px dashed var(--line2); padding-top: 10px; }
 .card .ask .lbl, .card .clar .lbl { font-size: var(--t-small); color: var(--ink2); margin-inline-end: 4px; }
 .card .ask .chip, .card .clar .chip { min-height: 40px; padding: 0 16px; }
-.card.pending { background: transparent; border-style: dashed; border-inline-start-style: solid; }
+.card.pending { background: transparent; border-style: dashed; }
 .card.pending .nm { color: var(--ink2); }
 .card.guide .nm { color: var(--ink2); font-weight: 400; }
 .card.dragging { opacity: .6; z-index: 5; box-shadow: 0 12px 28px -12px rgba(18, 23, 30, .45); }
@@ -462,7 +469,8 @@ details[open] > summary::before { transform: rotate(-135deg); margin-top: 4px; }
   :root { --t-display: 2.5rem; --t-h1: 2.125rem; --t-h2: 1.45rem; }
   main { padding: 44px 32px 128px; }
   .twin { grid-template-columns: 1fr 1fr; }
-  .facts div { grid-template-columns: 9rem 1fr; }
+  .how { display: grid; grid-template-columns: repeat(3, 1fr); column-gap: 28px; }
+  .how li { border-bottom: 0; }
   .ledger { display: grid; grid-template-columns: repeat(3, 1fr); column-gap: 28px; }
   .led { border-bottom: 0; }
 
@@ -525,3 +533,4 @@ details[open] > summary::before { transform: rotate(-135deg); margin-top: 4px; }
   .pr .foot { margin-top: 18px; font-size: 8.5pt; color: var(--ink2); border-top: 1px solid var(--line); padding-top: 6px; }
   .pr .sh { -webkit-print-color-adjust: exact; print-color-adjust: exact; margin-inline-end: 4px; }
 }
+.sheet:not(.on) { box-shadow: none; }
