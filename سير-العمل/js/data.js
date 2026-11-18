@@ -8,7 +8,7 @@ export const ROLES = [
   { id: 'head',     label: 'رئيس الإدارة القانونية',    color: '#232830', shape: 'square',   scope: 'inside' },
   { id: 'assistant',label: 'المساعد الإداري',          color: '#7C8591', shape: 'circle',   scope: 'inside' },
   { id: 'dept',     label: 'الإدارة الطالبة',          color: '#2F7D5B', shape: 'triangle', scope: 'org' },
-  { id: 'top',      label: 'الإدارة العليا',           color: '#7E6029', shape: 'bar',      scope: 'org' },
+  { id: 'top',      label: 'الإدارة العليا',           color: '#7E6029', shape: 'dash',      scope: 'org' },
   { id: 'firm',     label: 'مكتب محاماة خارجي',       color: '#4A6075', shape: 'ring',     scope: 'external' },
   { id: 'external', label: 'جهة خارجية',             color: '#9A8F7A', shape: 'cross',    scope: 'external' },
 ]
