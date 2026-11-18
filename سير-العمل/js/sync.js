@@ -4,7 +4,8 @@
 
 const params = new URLSearchParams(location.search)
 const pathToken = decodeURIComponent(location.pathname).match(/\/r\/([A-Za-z0-9_-]{8,})/)
-export const TOKEN = (pathToken && pathToken[1]) || params.get('رابط') || params.get('link') || ''
+// ‏`ETHKA_DEMO_TOKEN`‏: نسخةُ العرض (`demo/`) تحاكي الخادم في المتصفح وتضع مفتاحها هنا
+export const TOKEN = (pathToken && pathToken[1]) || params.get('رابط') || params.get('link') || globalThis.ETHKA_DEMO_TOKEN || ''
 export const online = () => !!TOKEN
 
 const base = '/api/link/' + encodeURIComponent(TOKEN)
