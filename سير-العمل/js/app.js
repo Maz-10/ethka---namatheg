@@ -7,6 +7,7 @@ import * as C from './calc.js'
 import * as R from './render.js'
 import * as S from './sync.js'
 import { applyClarification } from './arrange.js'
+import { mountDust } from './welcome-dust.js'
 import {
   state, update, undo, canUndo, onChange, onSynced, curTask, roleOf, allRoles, ORG, setOrg, hydrate,
   makeStage, taskFromTemplate, blankTask, cloneTask, newId, resetAll, extraTemplates, allTemplates,
@@ -45,38 +46,80 @@ function header() {
 
 // ════════════ الشاشات ════════════
 
+const STEPS = [
+  { shape: 'list', title: 'تختار المهمة', text: 'من مهام الإدارة القانونية الشائعة، أو مهمة أخرى تبنيها بنفسك' },
+  { shape: 'path', title: 'تصحح مراحلها وخصائصها', text: 'بلمسات: هل تمرّون بها، ومن يتولاها، وكم تأخذ' },
+  { shape: 'ledger', title: 'ترى خريطتها وأرقامها', text: 'في ملف أنيق قابل للطباعة، يبقى عندك وعندنا' },
+]
+
 function welcome() {
-  const field = Array.from({ length: 27 }, (_, i) => `<i class="${i === 13 ? 'g' : ''}"></i>`).join('')
   const resume = state.tasks.length > 0
-  return `<section class="page welcome">
-    <div class="field-row" aria-hidden="true">${field}</div>
-    <h1>أهلًا بفريق الإدارة القانونية${ORG ? `<span class="org-name">في ${esc(ORG)}</span>` : ''}</h1>
-    <div class="statement">
-      <p>أعدّ فريق إذكاء هذه الصفحة لإدارتكم خاصة. ترسم فيها مهمة واحدة من عملكم مرحلةً مرحلة، كما تجري عندكم فعلًا، لا كما ينبغي أن تجري.</p>
-      <p>وتخرج منها بخريطة واضحة للمهمة، وتقدير لما تستهلكه من ساعات العمل وأيام الانتظار، وتصور أولي لما يمكن أن تصير إليه. ونفهم نحن منها عملكم قبل أن نقترح شيئًا.</p>
+  return `<section class="hello" aria-labelledby="hello-title">
+    <div class="hello-ground" aria-hidden="true"></div>
+    <div class="hello-stage">
+      <canvas class="dust" aria-hidden="true"></canvas>
+      <p class="hello-eyebrow">${R.logo('mark', 'mk')}إذكاء · رسم سير العمل</p>
+      <h1 id="hello-title" class="hello-title">أهلًا بفريق الإدارة القانونية${ORG ? `<span class="hello-org">في ${esc(ORG)}</span>` : ''}</h1>
+      <p class="hello-promise">أعدّ فريق إذكاء هذه الصفحة لإدارتكم خاصة. ترسم فيها مهمة واحدة من عملكم مرحلةً مرحلة، كما تجري عندكم فعلًا لا كما ينبغي أن تجري، ونفهم نحن منها عملكم قبل أن نقترح شيئًا.</p>
     </div>
-    <ol class="how">
-      <li><b>تختار المهمة</b><span>من مهام الإدارة القانونية الشائعة، أو مهمة أخرى تبنيها بنفسك</span></li>
-      <li><b>تصحح مراحلها وخصائصها</b><span>بلمسات: هل تمرّون بها، ومن يتولاها، وكم تأخذ</span></li>
-      <li><b>ترى خريطتها وأرقامها</b><span>وتصورًا أوليًّا لها بعد التحويل، في ملف قابل للطباعة</span></li>
+    <ol class="hello-steps" aria-label="كيف تجري التجربة">
+      ${STEPS.map((x, i) => `<li tabindex="0" data-step="${i}" data-shape="${x.shape}"><span class="n">${n(i + 1)}</span><b>${x.title}</b><span class="t">${x.text}</span><i class="run" aria-hidden="true"></i></li>`).join('')}
     </ol>
-    <p class="duration">نحو عشر دقائق للمهمة الواحدة، ويُحفظ ما تدخله أولًا بأول.</p>
-    <div class="trust">
-      <h2 class="trust-h">قبل أن تبدأ</h2>
-      <ul>
-        <li>نطلب وصف الإجراء لا تفاصيل القضايا، فلا حاجة إلى أسماء الأشخاص ولا أرقام القضايا ولا أسماء الخصوم.</li>
-        <li>تُحفظ إجاباتك داخل المملكة، ولا يطّلع عليها إلا فريق إذكاء.</li>
-        <li>«لا أعرف» جواب مقبول في كل سؤال، ولا شيء نهائي حتى تضغط «اكتملت المهمة».</li>
-      </ul>
-    </div>
-    <div class="actions start">
-      <button class="btn primary" data-a="start">${resume ? 'أكمل من حيث توقفت' : 'ابدأ'}</button>
+    <div class="hello-cta">
+      <button class="btn gold" data-a="start" data-magnet>${resume ? 'أكمل من حيث توقفت' : 'ابدأ'}</button>
       <button class="btn ghost" data-a="example">شاهد مثالًا</button>
       ${resume && !ui.confirmReset ? `<button class="btn link" data-a="restart">ابدأ من جديد</button>` : ''}
     </div>
-    ${ui.confirmReset ? `<div class="confirm" role="alert"><p>تُمحى الخرائط المحفوظة في هذا الجهاز، ولا يمكن استرجاعها.</p>
+    ${ui.confirmReset ? `<div class="confirm hello-confirm" role="alert"><p>تُمحى الخرائط المحفوظة في هذا الجهاز، ولا يمكن استرجاعها.</p>
       <div class="actions"><button class="btn ghost" data-a="restart-yes">امحُ الخرائط وابدأ من جديد</button><button class="btn link" data-a="restart-no">أبقِها</button></div></div>` : ''}
+    <ul class="hello-facts">
+      <li><b>نحو عشر دقائق</b>للمهمة الواحدة، ويُحفظ ما تدخله أولًا بأول</li>
+      <li><b>وصف الإجراء</b>لا تفاصيل القضايا، فلا أسماء ولا أرقام قضايا ولا خصوم</li>
+      <li><b>داخل المملكة</b>تُحفظ إجاباتك، ولا يطّلع عليها إلا فريق إذكاء</li>
+      <li><b>«لا أعرف»</b>جواب مقبول في كل سؤال، ولا شيء نهائي حتى تقول: اكتملت</li>
+    </ul>
   </section>`
+}
+
+// ── حياةُ الترحيب: الغبار، والخطوات التي تعيد تشكيله، والزرُّ الذي يميل نحو المؤشّر
+let hello = null
+function mountHello() {
+  if (hello) { hello.destroy(); hello = null }
+  const canvas = $('.hello .dust')
+  if (!canvas) return
+  const dust = mountDust(canvas)
+  const steps = [...document.querySelectorAll('.hello-steps li')]
+  let idx = -1, timer = 0, paused = false
+  const show = (i) => {
+    idx = i
+    steps.forEach((el, k) => el.classList.toggle('on', k === i))
+    dust.set(i < 0 ? 'diamond' : steps[i].dataset.shape)
+  }
+  // يمضي وحده: المعيّن، ثم الخطوات واحدةً بعد أخرى، ثم يعود — ويتوقف ما دام العميل يشير إلى خطوة
+  const tick = () => { if (!paused) show(idx >= steps.length - 1 ? -1 : idx + 1) }
+  const reducedM = reduced()
+  if (!reducedM) timer = setInterval(tick, 3600)
+  const enter = (e) => { paused = true; show(Number(e.currentTarget.dataset.step)) }
+  const leave = () => { paused = false }
+  steps.forEach((el) => {
+    el.addEventListener('pointerenter', enter); el.addEventListener('focus', enter)
+    el.addEventListener('pointerleave', leave); el.addEventListener('blur', leave)
+  })
+  // الزرُّ المغناطيسي — للفأرة وحدها ولمن لم يطلب تقليل الحركة (`site/src/motion/pointer.ts`)
+  const mag = $('[data-magnet]')
+  let magMove = null
+  if (mag && !reducedM && matchMedia('(pointer: fine)').matches) {
+    const box = mag.parentElement
+    magMove = (e) => {
+      const r = mag.getBoundingClientRect()
+      const dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2)
+      const far = Math.abs(dx) > r.width / 2 + 26 || Math.abs(dy) > r.height / 2 + 26
+      mag.style.transform = far ? '' : `translate(${Math.max(-7, Math.min(7, dx * 0.22)).toFixed(1)}px,${Math.max(-7, Math.min(7, dy * 0.22)).toFixed(1)}px)`
+    }
+    box.addEventListener('pointermove', magMove)
+    box.addEventListener('pointerleave', () => (mag.style.transform = ''))
+  }
+  hello = { destroy() { clearInterval(timer); dust.destroy() } }
 }
 
 function pick() {
@@ -447,6 +490,8 @@ function render() {
   if (ui.focusName) { ui.focusName = false; const el = $('#stage-name'); el?.focus(); el?.select() }
   ui.grown = null
   requestAnimationFrame(R.drawArrows)
+  if (state.screen === 'welcome' && !ui.example) mountHello()
+  else if (hello) { hello.destroy(); hello = null }
 }
 
 function toast(text, undoable = false) {
