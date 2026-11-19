@@ -1,0 +1,14 @@
+{
+  "name": "ethka-photo-kit",
+  "private": true,
+  "version": "1.0.0",
+  "description": "قالبُ صور إذكاء — تموّجُ المعيّن: الهويّةُ تنبع من زاويةٍ وتتّسع فوق الصورة، بلا كلام",
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "build": "node src/build.mjs content/liqa-1.json"
+  },
+  "dependencies": {
+    "playwright": "^1.50.0"
+  }
+}
